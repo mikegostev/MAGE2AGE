@@ -1,10 +1,9 @@
 package uk.ac.ebi.esd.magetab;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.StringReader;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -15,14 +14,11 @@ import java.util.Map;
 import moda2.SDRFparser;
 import moda2.SDRFparser.Value;
 
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.BasicResponseHandler;
-import org.apache.http.impl.client.DefaultHttpClient;
 
 
-public class TermsHandler
+public class TermsHandlerLocal
 {
  static final String valueTSR="TSR";
  static final String unitType="UnitType";
@@ -31,9 +27,9 @@ public class TermsHandler
  
  public static void main(String[] args) throws IOException
  {
-  if( args.length != 2 )
+  if( args.length != 1 )
   {
-   System.err.println("Please, provide working directory and id file");
+   System.err.println("Please, provide working directory");
    System.exit(1);
   }
   
@@ -45,51 +41,30 @@ public class TermsHandler
    System.exit(1);
   }
  
-  File idFile = new File(wDir,args[1]);
   
-  List<String> ids = new ArrayList<String>(1000);
-  
-  FileReader idRd = new FileReader(idFile);
-  BufferedReader in = new BufferedReader(idRd);
-  
-  String str=null;
-  
-  while( (str = in.readLine()) != null )
-  {
-   str=str.trim();
-   
-   if( str.length() > 0)
-    ids.add(str);
-  }
-  
-  in.close();
-  
-  System.out.println("Loaded "+ids.size()+" IDs");
-  
-  HttpClient httpclient = new DefaultHttpClient();
-
-
   ResponseHandler<String> responseHandler = new BasicResponseHandler();
 
   Map<String,Collection<String>> hdrs = new HashMap<String,Collection<String>>();
   
   int i=1;
   
-  for(String id : ids)
+  for(File dir : wDir.listFiles())
   {
+   
+   if( ! dir.isDirectory() )
+    continue;
+   
+   String id = dir.getName();
+   
+   File sdrf = new File(dir, dir.getName()+".sdrf.txt");
    
    try
    {
-    String url = "http://www.ebi.ac.uk/microarray-as/ae/files/"+id+"/"+id+".sdrf.txt";
     
-    System.out.println(" Trying: "+url);
+    System.out.println(" Trying: "+id);
     
-    HttpGet httpget = new HttpGet(url); 
-    String responseBody = httpclient.execute(httpget, responseHandler);
-    
-    System.out.println(String.valueOf(i++)+" Got "+id+" size: "+responseBody.length());
 
-    SDRFparser parser = new SDRFparser( new StringReader(responseBody) );
+    SDRFparser parser = new SDRFparser( new FileReader(sdrf) );
     
     
     for( HashMap<String,HashMap<String,HashSet<Value>>> srcMap : parser.getNodes().get("Source Name").values() )
@@ -127,36 +102,42 @@ public class TermsHandler
    
   }
   
+  PrintStream rep = new PrintStream(new File(wDir,"report.txt"));
+  
   MGEDTerms mged = new MGEDTerms();
   
   HashSet<String> standard = new HashSet<String>();
   
-  System.out.println("Headers: ");
+  rep.println("Headers: ");
+  
   for(Map.Entry<String,Collection<String>> me : hdrs.entrySet() )
   {
    String h = me.getKey();
    
    if( mged.contains(h))
    {
-    System.out.print("[MGED] ");
+    rep.print("[MGED] ");
     standard.add(h);
    }
    
-   System.out.println(h);
+   rep.println(h);
    
-   System.out.print("   ");
    for( String exp : me.getValue() )
-    System.out.print("{"+exp+"}");
+   {
+    rep.print("   ");
+    rep.print("{"+exp+"}");
+   }
    
-   System.out.println("\n");
+   rep.println("");
   }
   
-  System.out.println("Standard: ");
+  rep.println("Standard: ");
   for(String h : standard)
   {
-   System.out.println(h);
+   rep.println(h);
   }
 
+  rep.close();
   
   return;
  }

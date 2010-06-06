@@ -67,6 +67,8 @@ public class SDRFparser
    "Derived Array Data Matrix File",
    "Image File", "Array Design File",
    "Array Design REF",
+   "Technology Type",
+   "Assay Name",
    "Protocol REF"));
  
  static Set<String>              attributeTypes            = new HashSet<String>(Arrays.asList(
@@ -75,6 +77,7 @@ public class SDRFparser
    "Material Type",
    "Label",
    "Factor Value",
+   "FactorValue",
    "Performer",
    "Date",
    "Parameter Value",
@@ -174,7 +177,7 @@ public class SDRFparser
   boolean headerFound = false;
   ColumnDescriptor[] colDefs = null;
   
-  Pattern pattern = Pattern.compile("([^\\[]+)(\\[(.*)\\])?\\s*(\\((.+)\\))?");
+  Pattern pattern = Pattern.compile("\"?([^\\[]+)(\\[(.*)\\])?\\s*(\\((.+)\\))?\"?");
   
   while((str = in.readLine()) != null)
   {
@@ -185,6 +188,12 @@ public class SDRFparser
   
    if( strArr.length == 0 || strArr[0].trim().length() == 0 )
     continue;
+  
+   for( int i=0; i < strArr.length; i++ )
+   {
+    if( strArr[i].length() >= 2 && strArr[i].charAt(0) == '"' && strArr[i].charAt(strArr[i].length()-1) == '"' )
+     strArr[i]=strArr[i].substring(1,strArr[i].length()-1);
+   }
    
    if(!headerFound)
    {
@@ -253,6 +262,10 @@ public class SDRFparser
       colDefs[curColIdx].linkedColumnNumber = curAttIdx;
       curUnitIdx = -1;
       colDefs[curColIdx].commentType = inBrackets;
+     }
+     else
+     {
+      throw new RuntimeException("Can't determine column type: "+header);
      }
     }
    }
