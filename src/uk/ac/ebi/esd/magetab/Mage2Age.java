@@ -6,10 +6,14 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeMap;
 
 import moda2.SDRFparser;
 import moda2.SDRFparser.Value;
@@ -37,12 +41,20 @@ public class Mage2Age
    System.exit(1);
   }
  
+  List<Map<String,String>> persons = new ArrayList<Map<String,String>>(5);
+  List<Map<String,String>> terms = new ArrayList<Map<String,String>>(5);
+  List<Map<String,String>> pubs = new ArrayList<Map<String,String>>(5);
+
+  
   for( File expDir : wDir.listFiles() )
   {
    if( ! expDir.isDirectory() )
     continue;
    
    String expName = expDir.getName();
+   
+   if( expName.indexOf("-242") == -1 ) //TODO remove after debugging
+    continue;
    
    System.out.println("Working with the experiment: "+expName );
    
@@ -60,6 +72,15 @@ public class Mage2Age
 //   HashMap<String, HashMap<String, HashMap<String, HashSet<Value>>>> sampleMap = parser.getNodes().get("Source Name");
    
    String invTitle=null;
+   String expDescr=null;
+   String relsDate=null;
+   String expDate=null;
+
+   Map<String,String> comments = new TreeMap<String, String>();
+   
+   persons.clear();
+   terms.clear();
+   pubs.clear();
    
    if( idfFile.canRead() )
    {
@@ -71,11 +92,24 @@ public class Mage2Age
     {
      String[] strArr = str.split("[\\t]");
 
-     if( "Investigation Title".equals(strArr[0]) )
-     {
+     if( "Investigation Title".equals(strArr[0]) && strArr.length > 1 && strArr[1].trim().length() > 0 )
       invTitle = strArr[1];
-      break;
-     }
+     else if( "Experiment Description".equals(strArr[0]) && strArr.length > 1 && strArr[1].trim().length() > 0  )
+      expDescr = strArr[1];
+     else if( "Public Release Date".equals(strArr[0]) && strArr.length > 1 && strArr[1].trim().length() > 0  )
+      relsDate = strArr[1];
+     else if( "Date of Experiment".equals(strArr[0]) && strArr.length > 1 && strArr[1].trim().length() > 0  )
+      expDate = strArr[1];
+     else if( strArr[0].startsWith("Person ") )
+      processIDFObjLine("Person ",strArr,persons);
+     else if( strArr[0].startsWith("Term ") )
+      processIDFObjLine("Term ",strArr,terms);
+     else if( strArr[0].startsWith("Publication ") )
+      processIDFObjLine("Publication ",strArr,pubs);
+     else if( strArr[0].startsWith("PubMed ") )
+      processIDFObjLine("",strArr,pubs);
+     else if( strArr[0].startsWith("Comment[") )
+      comments.put(strArr[0].substring(8,strArr[0].length()-1), strArr[1]);
      
     }
     
@@ -253,9 +287,24 @@ public class Mage2Age
    }
    fwr.write("\tbelongsTo\n");
 
-   for( Map.Entry<String,HashMap<String,HashMap<String,HashSet<Value>>>> me : parser.getNodes().get("Source Name").entrySet() )
+   List<Map.Entry<String,HashMap<String,HashMap<String,HashSet<Value>>>>> sampls = new ArrayList<Map.Entry<String,HashMap<String,HashMap<String,HashSet<Value>>>>>();
+   
+   sampls.addAll(parser.getNodes().get("Source Name").entrySet());
+   
+   Collections.sort(sampls, new Comparator<Map.Entry<String,HashMap<String,HashMap<String,HashSet<Value>>>>>()
    {
-    fwr.write(me.getKey());
+    @Override
+    public int compare(Entry<String, HashMap<String, HashMap<String, HashSet<Value>>>> o1,
+      Entry<String, HashMap<String, HashMap<String, HashSet<Value>>>> o2)
+    {
+     return o1.getKey().compareTo(o2.getKey());
+    }
+   });
+   
+   int sid=1;
+   for( Map.Entry<String,HashMap<String,HashMap<String,HashSet<Value>>>> me : sampls )
+   {
+    fwr.write("SAE-"+expName+"-"+(sid++));
     
     for( Block b : header )
     {
@@ -302,6 +351,37 @@ public class Mage2Age
   
   
   return;
+ }
+
+ private static void processIDFObjLine(String string, String[] strArr, List<Map<String, String>> persons)
+ {
+  int dif=strArr.length -1 - persons.size();
+  if( dif > 0 )
+  {
+   for( int i=0; i < dif; i++ )
+    persons.add(null);
+  }
+  
+  String attr = strArr[0].substring(string.length());
+  
+  for( int i=0; i < strArr.length -1; i++ )
+  {
+   String val = strArr[i+1].trim();
+   
+   if( val.length() == 0 )
+    continue;
+   
+   Map<String, String> obj = persons.get(i);
+   
+   if( obj == null )
+   {
+    obj=new TreeMap<String, String>();
+    persons.set(i, obj);
+   }
+   
+   obj.put(attr, val);
+  }
+  
  }
 
  static class Path
