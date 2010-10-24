@@ -4,10 +4,11 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
 import java.io.PrintStream;
+import java.io.RandomAccessFile;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -19,21 +20,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.mged.magetab.error.ErrorCode;
-import org.mged.magetab.error.ErrorItem;
-import org.mged.magetab.error.ErrorItemFactory;
+import uk.ac.ebi.age.util.StringUtil;
 
-import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
-import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SDRFNode;
-import uk.ac.ebi.arrayexpress2.magetab.exception.ErrorItemListener;
-import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
-import uk.ac.ebi.arrayexpress2.magetab.exception.ValidateException;
-import uk.ac.ebi.arrayexpress2.magetab.handler.ParserMode;
-import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
-import uk.ac.ebi.arrayexpress2.magetab.validator.AbstractValidator;
-import uk.ac.ebi.arrayexpress2.magetab.validator.Validator;
 
-public class Limpopo
+public class CustomSDRF
 {
 
  /**
@@ -41,52 +31,6 @@ public class Limpopo
   */
  public static void main(String[] args)
  {
-  MAGETABParser parser = new MAGETABParser(ParserMode.READ_ONLY);
-
-  // add an error item listener to the parser
-  parser.addErrorItemListener(new ErrorItemListener()
-  {
-
-   public void errorOccurred(ErrorItem item)
-   {
-    // locate the error code from the enum, to check the generic message
-    ErrorCode code = null;
-    for(ErrorCode ec : ErrorCode.values())
-    {
-     if(item.getErrorCode() == ec.getIntegerValue())
-     {
-      code = ec;
-      break;
-     }
-    }
-
-    if(code != null)
-    {
-     // this just dumps out some info about the type of error
-     System.out.println("Listener reported error...");
-     System.out.println("\tError Code: " + item.getErrorCode() + " [" + code.getErrorMessage() + "]");
-     System.out.println("\tError message: " + item.getMesg());
-     System.out.println("\tCaller: " + item.getCaller());
-    }
-   }
-  });
-
-  // make a new validator
-  Validator<MAGETABInvestigation> validator = new AbstractValidator<MAGETABInvestigation>()
-  {
-
-   public boolean validate(MAGETABInvestigation validatorSource) throws ValidateException
-   {
-    // this doesn't really do any validation, just generates one error
-    // item then throws an exception to indicate it failed
-    ErrorItem item = ErrorItemFactory.getErrorItemFactory().generateErrorItem("Not really doing any validation", 1,
-      this.getClass());
-
-    fireErrorItemEvent(item);
-    throw new ValidateException(item, true, "Validation failed");
-   }
-  };
-
   // set our dummy validator on the parser
   // parser.setValidator(validator);
 
@@ -95,9 +39,11 @@ public class Limpopo
   // File("/home/mike/ESD/AE/AE-EXP/E-MEXP-242/E-MEXP-242.idf.txt");
   // File idfFile = new File("F:/BioSD/ae/E-ATMX-12/E-ATMX-12.idf.txt");
 
-  Set<String> unitTypes = new HashSet<String>();
-  Set<String> characTypes = new HashSet<String>();
-  Set<String> otherHeaders = new HashSet<String>();
+  Map<String, Set<String> > unitTypes = new HashMap<String, Set<String> >();
+  Map<String, Set<String> > characTypes = new HashMap<String, Set<String> >();
+  Map<String, Set<String> > otherHeaders = new HashMap<String, Set<String> >();
+  Map<String, Set<String> > personHeaders = new HashMap<String, Set<String> >();
+  Map<String, Set<String> > pubHeaders = new HashMap<String, Set<String> >();
 
   List<Map<String,String>> persons = new ArrayList<Map<String,String>>(5);
   List<Map<String,String>> terms = new ArrayList<Map<String,String>>(5);
@@ -112,8 +58,8 @@ public class Limpopo
   Map<String,Map<String,String>> termMap = new HashMap<String, Map<String,String>>();
 
   
-  File wDir = new File("F:/BioSD/AE-EXP");
-  File outDir = new File("F:/BioSD/AE-EXP/age-tab");
+  File wDir = new File("F:/BioSD/ae");
+  File outDir = new File("F:/BioSD/age-tab");
 
   for(File expDir : wDir.listFiles())
   {
@@ -124,6 +70,9 @@ public class Limpopo
 
     String expName = expDir.getName();
 
+//    if( ! "E-AFMX-3".equals(expName) )
+//     continue;
+    
     String expId="GAE-"+expName;
     
     
@@ -142,6 +91,7 @@ public class Limpopo
     pubsKeys.clear();
     
     File idfFile = new File(expDir, expName + ".idf.txt");
+    File sdrfFile = new File(expDir, expName + ".sdrf.txt");
 
     try
     {
@@ -169,6 +119,8 @@ public class Limpopo
         String key = strArr[0].substring(7);
         persKeys.add(key);
         processIDFObjLine(key, strArr, persons);
+        
+        registerTerm(key, expName, personHeaders);
        }
        else if(strArr[0].startsWith("Term Source "))
        {
@@ -176,17 +128,29 @@ public class Limpopo
         termsKeys.add(key);
         processIDFObjLine(key, strArr, terms);
        }
+       else if(strArr[0].startsWith("Publication Status Term Source"))
+       {
+        String key = "Status[Term Source]";
+        pubsKeys.add(key);
+        processIDFObjLine(key, strArr, pubs);
+        
+        registerTerm(key, expName, pubHeaders);
+       }
        else if(strArr[0].startsWith("Publication "))
        {
         String key = strArr[0].substring(12);
         pubsKeys.add(key);
         processIDFObjLine(key, strArr, pubs);
+        
+        registerTerm(key, expName, pubHeaders);
        }
        else if(strArr[0].startsWith("PubMed "))
        {
         String key = "PubMed ID";
         pubsKeys.add(key);
         processIDFObjLine(key, strArr, pubs);
+        
+        registerTerm(key, expName, pubHeaders);
        }
        else if(strArr[0].startsWith("Comment[") && strArr.length > 1 && strArr[1].trim().length() > 0)
        {
@@ -202,22 +166,19 @@ public class Limpopo
      e.printStackTrace();
     }
     
-    // do parse
     System.out.println("Parsing " + idfFile.getAbsolutePath() + "...");
 
-    // need to get the url of this file, as the parser only takes urls
-    MAGETABInvestigation investigation = parser.parse(idfFile.toURI().toURL());
 
     PrintStream out=null;
-    // System.out.println( investigation.SDRF.lookupRootNodes() );
-
-    Collection<? extends SDRFNode> nodes = investigation.SDRF.lookupNodes("Source Name");
     
-    if( nodes.size() == 0 )
-     continue;
     
     File outF = new File(outDir,expName+".age.txt");
    
+    SDRF sdrf = readSDRF(sdrfFile);
+
+    if( sdrf.header == null )
+     continue;
+    
     out=null;
     try
     {
@@ -229,7 +190,7 @@ public class Limpopo
      continue;
     }
     
-    out.print("Group\tDescription\tSource\tLink");
+    out.print("Group\tDescription\tData Source\tLink");
     
     if(expDescr!=null)
      out.print("\tExperiment Description");
@@ -266,11 +227,23 @@ public class Limpopo
     
     persKeys.add("contactOf");
     for( Map<String,String> p : persons )
-     p.put("contactOf", expId);
-
+    {
+     if( p!=null)
+     {
+      if( p.containsKey("Roles Term Source REF") )
+      {
+       p.put("Roles[Term Source]", p.get("Roles Term Source REF") );
+       p.remove("Roles Term Source REF");
+      }
+      
+      p.put("contactOf", expId);
+     }
+    }
+    
     persKeys.add("publicationAbout");
     for( Map<String,String> p : pubs )
-     p.put("publicationAbout", expId);
+     if( p!=null)
+      p.put("publicationAbout", expId);
     
     printBlock(persKeys,persons,"Person",out);
     printBlock(pubsKeys,pubs,"Publication",out);
@@ -347,32 +320,36 @@ public class Limpopo
     }
     
     
-    ArrayList<SDRFNode> sampls = new ArrayList<SDRFNode>(nodes.size());
-    sampls.addAll(nodes);
     
-    Collections.sort(sampls, new Comparator<SDRFNode>()
+    ArrayList<List<String>> sampls = new ArrayList<List<String>>(sdrf.samples.size());
+    sampls.addAll(sdrf.samples.values());
+    
+    Collections.sort(sampls, new Comparator<List<String>>()
     {
      @Override
-     public int compare(SDRFNode o1, SDRFNode o2)
+     public int compare(List<String> o1, List<String> o2)
      {
-      return o1.values()[0].compareTo(o2.values()[0]);
+      return o1.get(0).compareTo(o2.get(0));
      }
     });
     
-    String[] hdrs = sampls.get(0).headers();
-
-    out.print("\nSample\tName");
+    int hdSize = sdrf.header.size();
+    
+    out.print("\nSample\tbelonsTo\n*\t"+expId);
+    
+    out.print("\n\nSample\tName");
     
     String mainAttr = null;
-    for(int i = 1; i < hdrs.length; i++)
+    for(int i = 1; i < hdSize; i++)
     {
-     String name = hdrs[i];
+     String name = sdrf.header.get(i);
 
      if(name.startsWith("Characteristics"))
      {
       Qualified qname = parseQualified(name);
 
-      characTypes.add(qname.qualifier);
+      registerTerm(qname.qualifier, expName, characTypes);
+
       out.print("\tCharacteristics{"+qname.qualifier+"}");
       
       mainAttr = "Characteristics{"+qname.qualifier+"}";
@@ -381,7 +358,7 @@ public class Limpopo
      {
       Qualified qname = parseQualified(name);
 
-      unitTypes.add(qname.qualifier);
+      registerTerm(qname.qualifier, expName, unitTypes);
       
       out.print("\t"+mainAttr+"[Unit{"+qname.qualifier+"}]");
       
@@ -390,6 +367,12 @@ public class Limpopo
      else if( name.equalsIgnoreCase("Term Source REF") )
      {
       out.print("\t"+mainAttr+"[Term Source]");
+      registerTerm("[Term Source]", expName, otherHeaders);
+     }
+     else if( name.equalsIgnoreCase("Term Accession Number") )
+     {
+      out.print("\t"+mainAttr+name);
+      registerTerm("[Term Accession Number]", expName, otherHeaders);
      }
      else if( name.startsWith("Comment") )
      {
@@ -400,24 +383,29 @@ public class Limpopo
      else
      {
       mainAttr = name;
-      otherHeaders.add(name);
+      registerTerm(name, expName, otherHeaders);
       out.print("\t"+name);
      }
     }
     
-    out.print("\tbelongsTo");
+//    out.print("\tbelongsTo");
 
     
     for( int i=0; i < sampls.size(); i++ )
     {
      out.print("\nSAE-"+expName+"-"+(i+1));
      
-     String[] vals = sampls.get(i).values();
+     List<String> vals = sampls.get(i);
      
-     for( int j=0; j < vals.length; j++)
-      out.print("\t"+vals[j]);
+     for( int j=0; j < hdSize; j++)
+     {
+      if( j < vals.size() )
+       out.print("\t"+vals.get(j));
+      else
+       out.print("\t");
+     }
      
-     out.print("\t"+expId);
+//     out.print("\t"+expId);
     }
     
     out.print("\n");
@@ -428,32 +416,84 @@ public class Limpopo
     // System.out.println(investigation);
 
    }
-   catch(ParseException e)
-   {
-    // This happens if parsing failed.
-    // Any errors here will also have been reported by the listener
-    e.printStackTrace();
-   }
    catch(MalformedURLException e)
    {
     // This is if the url from the file is bad
     e.printStackTrace();
    }
+   catch(IOException e)
+   {
+    // TODO Auto-generated catch block
+    e.printStackTrace();
+   }
 
   }
 
-  System.out.println("\nCharacteristics: ");
-  for(String s : characTypes)
-   System.out.println(" " + s);
+  try
+  {
+   RandomAccessFile log = new RandomAccessFile(new File(outDir,".log"), "rw");
 
-  System.out.println("\nUnits: ");
-  for(String s : unitTypes)
-   System.out.println(" " + s);
-
-  System.out.println("\nOther props: ");
-  for(String s : otherHeaders)
-   System.out.println(" " + s);
-
+   log.writeChars("Characteristics:\n");
+   for(Map.Entry<String, Set<String>> me : characTypes.entrySet() )
+   {
+    log.writeChars("  "+me.getKey()+"\n");
+    
+    for( String exp : me.getValue() )
+     log.writeChars("    "+exp+"\n");
+   }
+   
+   log.writeChars("\nUnits:\n");
+   for(Map.Entry<String, Set<String>> me : unitTypes.entrySet() )
+   {
+    log.writeChars("  "+me.getKey()+"\n");
+    
+    for( String exp : me.getValue() )
+     log.writeChars("    "+exp+"\n");
+   }
+   
+   
+   log.writeChars("\nPerson props:\n");
+   for(Map.Entry<String, Set<String>> me : personHeaders.entrySet() )
+   {
+    log.writeChars("  "+me.getKey()+"\n");
+    
+    for( String exp : me.getValue() )
+     log.writeChars("    "+exp+"\n");
+   }
+   
+   log.writeChars("\nPublication props:\n");
+   for(Map.Entry<String, Set<String>> me : pubHeaders.entrySet() )
+   {
+    log.writeChars("  "+me.getKey()+"\n");
+    
+    for( String exp : me.getValue() )
+     log.writeChars("    "+exp+"\n");
+   }
+  
+   log.writeChars("\nOther props:\n");
+   for(Map.Entry<String, Set<String>> me : otherHeaders.entrySet() )
+   {
+    log.writeChars("  "+me.getKey()+"\n");
+    
+    for( String exp : me.getValue() )
+     log.writeChars("    "+exp+"\n");
+   }
+ 
+   
+   log.close();
+  }
+  catch(FileNotFoundException e)
+  {
+   // TODO Auto-generated catch block
+   e.printStackTrace();
+  }
+  catch(IOException e)
+  {
+   // TODO Auto-generated catch block
+   e.printStackTrace();
+  }
+  
+  
  }
 
  static class Qualified
@@ -565,5 +605,93 @@ public class Limpopo
   }
   out.print("\n");
 
+ }
+ 
+ static class SDRF
+ {
+  List<String> header;
+  Map<String, List<String> > samples = new HashMap<String, List<String>>();
+ }
+ 
+ 
+ private static SDRF readSDRF( File sdrfFile ) throws IOException
+ {
+  RandomAccessFile file = new RandomAccessFile(sdrfFile, "r");
+  
+  String line=null;
+  
+  SDRF res = new SDRF();
+  
+  int hdSize = -1;
+  
+  List<String> spLine = new ArrayList<String>(100);
+
+  while( (line = file.readLine()) != null )
+  {
+   spLine.clear();
+   StringUtil.splitExcelString(line, "\t", spLine);
+   
+   
+   if( hdSize == -1 )
+   {
+    if( spLine.size() == 0 || ! spLine.get(0).trim().matches("^Source\\s+Name$") )
+     continue;
+    
+    int i=1;
+    for( ; i<spLine.size(); i++ )
+    {
+     String hd = spLine.get(i).trim();
+     
+     if( hd.endsWith(" Name") ||  hd.startsWith("Protocol ") || hd.endsWith("Protocol REF") )
+      break;
+    }
+    
+    hdSize = i;
+    
+    List<String> hdrs = new ArrayList<String>(hdSize);
+    hdrs.addAll(spLine.subList(0, hdSize));
+    
+    res.header=hdrs;
+   }
+   else
+   {
+    if( spLine.size() == 0 )
+     continue;
+    
+    String nm = spLine.get(0).trim();
+    
+    if( nm.length() == 0 )
+     continue;
+    
+    List<String> vals = new ArrayList<String>(hdSize);
+
+    if( spLine.size() < hdSize )
+     vals.addAll(spLine);
+    else
+     vals.addAll( spLine.subList(0, hdSize) );
+
+    res.samples.put(nm,vals);
+    
+   }
+  }
+  
+  file.close();
+  
+  return res;
+ }
+ 
+ static void registerTerm(String term, String exp, Map<String, Set<String>> map)
+ {
+  Set<String> set = map.get(term);
+  
+  if( set == null )
+  {
+   map.put(term, set = new HashSet<String>() );
+   set.add(exp);
+  }
+  else if( set.size() < 15 )
+   set.add(exp);
+  
+  
  }
 }
