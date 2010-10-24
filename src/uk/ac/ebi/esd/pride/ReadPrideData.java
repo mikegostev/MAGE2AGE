@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.pri.util.StringUtils;
+import uk.ac.ebi.age.util.StringUtil;
 
 
 public class ReadPrideData
@@ -76,7 +76,7 @@ public class ReadPrideData
   List<String> header = new ArrayList<String>(30);
 
   str = rd.readLine();
-  StringUtils.splitExcelString(str, ",", header);
+  StringUtil.splitExcelString(str, ",", header);
   
   List<String> parts = new ArrayList<String>(30);
 
@@ -90,7 +90,7 @@ public class ReadPrideData
   while((str = rd.readLine()) != null)
   {
    parts.clear();
-   StringUtils.splitExcelString(str, ",", parts);
+   StringUtil.splitExcelString(str, ",", parts);
 
    Sample cSamp = new Sample();
    Experiment cExp = new Experiment();
