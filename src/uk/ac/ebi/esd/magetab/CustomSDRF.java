@@ -58,8 +58,8 @@ public class CustomSDRF
   Map<String,Map<String,String>> termMap = new HashMap<String, Map<String,String>>();
 
   
-  File wDir = new File("F:/BioSD/ae");
-  File outDir = new File("F:/BioSD/age-tab");
+  File wDir = new File("/home/mike/BioSD/ae");
+  File outDir = new File("/home/mike/BioSD/age-tab2");
 
   for(File expDir : wDir.listFiles())
   {
@@ -371,7 +371,7 @@ public class CustomSDRF
      }
      else if( name.equalsIgnoreCase("Term Accession Number") )
      {
-      out.print("\t"+mainAttr+name);
+      out.print("\t"+mainAttr+"["+name+"]");
       registerTerm("[Term Accession Number]", expName, otherHeaders);
      }
      else if( name.startsWith("Comment") )

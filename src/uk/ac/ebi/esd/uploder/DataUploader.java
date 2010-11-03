@@ -1,6 +1,7 @@
 package uk.ac.ebi.esd.uploder;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,6 +24,8 @@ public class DataUploader
   try
   {
    File wDir = new File( args[0] );
+   
+   System.out.println("Working directory: "+args[0]);
    
    DefaultHttpClient httpclient = new DefaultHttpClient();
 
@@ -62,7 +65,21 @@ public class DataUploader
     
     response = httpclient.execute(httppost, responseHandler);
     
-    System.out.println(fn+" result: " + response);
+    if( "OK".equals(response.trim()) )
+     System.out.println(fn+": OK");
+    else
+    {
+     System.out.println(fn+": ERROR");
+     
+     FileWriter fout = new FileWriter(new File(wDir,fn+".log"));
+     fout.write(response);
+     fout.close();
+     
+//     break;
+    }
+    
+//    if( fn.endsWith("11826.age.txt") )
+//     return;
    }
    
   }
