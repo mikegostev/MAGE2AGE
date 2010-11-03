@@ -293,7 +293,7 @@ public class CustomSDRF
      for( Map.Entry<String, Map<String,String>> me : termMap.entrySet())
      {
       out.print("\n");
-      out.print(me.getKey());
+      out.print("$"+me.getKey());
      
       if( hasFile )
       {
@@ -335,7 +335,7 @@ public class CustomSDRF
     
     int hdSize = sdrf.header.size();
     
-    out.print("\nSample\tbelonsTo\n*\t"+expId);
+    out.print("\nSample\tbelongsTo\n*\t"+expId);
     
     out.print("\n\nSample\tName");
     
@@ -591,7 +591,7 @@ public class CustomSDRF
    if( obj == null )
     continue;
    
-   out.print("\n?"+(ind++));
+   out.print("\n?"); //+(ind++)
 
    for( String k : keys )
    {
