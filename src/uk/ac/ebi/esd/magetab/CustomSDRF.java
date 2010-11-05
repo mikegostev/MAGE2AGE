@@ -59,7 +59,7 @@ public class CustomSDRF
 
   
   File wDir = new File("/home/mike/BioSD/ae");
-  File outDir = new File("/home/mike/BioSD/age-tab2");
+  File outDir = new File("/home/mike/BioSD/age-tab3");
 
   for(File expDir : wDir.listFiles())
   {
@@ -240,7 +240,7 @@ public class CustomSDRF
      }
     }
     
-    persKeys.add("publicationAbout");
+    pubsKeys.add("publicationAbout");
     for( Map<String,String> p : pubs )
      if( p!=null)
       p.put("publicationAbout", expId);

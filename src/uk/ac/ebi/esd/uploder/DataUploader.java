@@ -78,6 +78,10 @@ public class DataUploader
 //     break;
     }
     
+//    httppost.abort();
+    
+//    System.out.print(">");
+//    System.in.read();
 //    if( fn.endsWith("11826.age.txt") )
 //     return;
    }
