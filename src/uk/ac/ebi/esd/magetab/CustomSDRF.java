@@ -209,7 +209,7 @@ public class CustomSDRF
     out.print(expId);
     out.print("\t");
     out.print(invTitle);
-    out.print("\tArray Experss\thttp://www.ebi.ac.uk/arrayexpress/experiments/"+expName);
+    out.print("\tArray Express\thttp://www.ebi.ac.uk/arrayexpress/experiments/"+expName);
 
     if(expDescr!=null)
      out.print("\t"+expDescr);
