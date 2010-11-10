@@ -59,7 +59,7 @@ public class CustomSDRF
 
   
   File wDir = new File("/home/mike/BioSD/ae");
-  File outDir = new File("/home/mike/BioSD/age-tab3");
+  File outDir = new File("/home/mike/BioSD/age-tab4");
 
   for(File expDir : wDir.listFiles())
   {

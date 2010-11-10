@@ -16,11 +16,11 @@ import java.util.Set;
 import uk.ac.ebi.age.util.StringUtil;
 
 
-public class ReadPrideData
+public class ReadPrideData2
 {
 
  static final String experimentId     = "PRIDE Experiment Accession";
- static final String sampleId         = "DOI (Digital Object Identifier)";
+ static final String sampleId         = "Sample Name";//"DOI (Digital Object Identifier)";
  static final String sampleName       = "Sample Name";
  static final String pubMedId         = "PubMed ID (CiteXplore)";
  static final String description      = "Experiment Short Label";
