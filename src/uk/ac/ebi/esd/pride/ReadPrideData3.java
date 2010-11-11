@@ -16,10 +16,10 @@ import java.util.Set;
 import uk.ac.ebi.age.util.StringUtil;
 
 
-public class ReadPrideData2
+public class ReadPrideData3
 {
 
- static final String experimentId     = "Project Name";//"PRIDE Experiment Accession";
+ static final String experimentId     = "PRIDE Experiment Accession";
  static final String sampleId         = "Sample Name";//"DOI (Digital Object Identifier)";
  static final String sampleName       = "Sample Name";
  static final String pubMedId         = "PubMed ID (CiteXplore)";
@@ -29,36 +29,38 @@ public class ReadPrideData2
  static final String contactName      = "Contact Name";
  static final String brendaID         = "BRENDA ID (Tissue)";
  static final String doi              = "DOI (Digital Object Identifier)";
+ static final String cellType         = "Cell Type Term (CL)";
+ static final String cellTypeID       = "CL ID (Cell Type)";
  /**
   * @param args
   * @throws IOException
   */
- static Set<String>  sampleAttribures = new HashSet<String>();
- static Set<String>  contactAttribures = new HashSet<String>();
- static Set<String>  publicationAttribures = new HashSet<String>();
+ static Map<String,String>  sampleAttributes = new LinkedHashMap<String,String>();
+ static Map<String,String>  contactAttribures = new LinkedHashMap<String,String>();
+ static Map<String,String>  publicationAttribures = new LinkedHashMap<String,String>();
 
  static
  {
 //  sampleAttribures.add("Sample Name");
-  sampleAttribures.add("Sample Description Comment");
-  sampleAttribures.add("Taxonomy Term (NEWT / NCBI Taxon)");
-  sampleAttribures.add("Taxonomy ID (NEWT / NCBI Taxon)");
-  sampleAttribures.add("Tissue Ontology Term (BRENDA)");
-  sampleAttribures.add(brendaID);
-  sampleAttribures.add("Cell Type Term (CL)");
-  sampleAttribures.add("CL ID (Cell Type)");
-  sampleAttribures.add("Gene Ontology Term (GO)");
-  sampleAttribures.add("GO ID (Gene Ontology)");
-  sampleAttribures.add("Human Disease Term (DOID)");
-  sampleAttribures.add("DOID ID (Human Disease)");
+  sampleAttributes.put("Sample Description Comment",null);
+  sampleAttributes.put("Taxonomy Term (NEWT / NCBI Taxon)",null);
+  sampleAttributes.put("Taxonomy ID (NEWT / NCBI Taxon)",null);
+  sampleAttributes.put("Tissue Ontology Term (BRENDA)",null);
+  sampleAttributes.put(brendaID,null);
+  sampleAttributes.put(cellType,null);
+  sampleAttributes.put(cellTypeID,null);
+  sampleAttributes.put("Gene Ontology Term (GO)",null);
+  sampleAttributes.put("GO ID (Gene Ontology)",null);
+  sampleAttributes.put("Human Disease Term (DOID)",null);
+  sampleAttributes.put("DOID ID (Human Disease)",null);
   
-  contactAttribures.add(contactName);
-  contactAttribures.add("Institution");
-  contactAttribures.add("Contact Details (Email)");
+  contactAttribures.put(contactName,null);
+  contactAttribures.put("Institution",null);
+  contactAttribures.put("Contact Details (Email)",null);
   
-  publicationAttribures.add(pubMedId);
-  publicationAttribures.add(doi);
-  publicationAttribures.add(refLine);
+  publicationAttribures.put(pubMedId,null);
+  publicationAttribures.put(doi,null);
+  publicationAttribures.put(refLine,null);
  }
 
  static class Experiment
@@ -66,19 +68,19 @@ public class ReadPrideData2
   String id;
   
   Map<String,String> attributes = new LinkedHashMap<String,String>();
-  Map<String,Sample> samples = new LinkedHashMap<String,Sample>();
+  Map<String,Map<String,String>> samples = new LinkedHashMap<String,Map<String,String>>();
   Map<String,Map<String,String>> publications = new LinkedHashMap<String,Map<String,String>>();
   Map<String,Map<String,String>> contacts = new LinkedHashMap<String,Map<String,String>>();
   
  }
  
- static class Sample
- {
-  String id;
-  String name;
-  
-  Map<String,String> attributes = new LinkedHashMap<String,String>();
- }
+// static class Sample
+// {
+//  String id;
+//  String name;
+//  
+//  Map<String,String> attributes = new LinkedHashMap<String,String>();
+// }
  
  static Map<String, Experiment> experiments = new HashMap<String, Experiment>();
  
@@ -99,11 +101,11 @@ public class ReadPrideData2
   
   List<String> parts = new ArrayList<String>(30);
 
-  List<String> sampleAttributes = new ArrayList<String>();
+//  List<String> sampleAttributes = new ArrayList<String>();
 
-  for(String h : header )
-   if( sampleAttribures.contains(h) )
-    sampleAttributes.add(h);
+//  for(String h : header )
+//   if( sampleAttribures.contains(h) )
+//    sampleAttributes.add(h);
 
   Map<String,String> valMap = new HashMap<String, String>();
   
@@ -128,27 +130,25 @@ public class ReadPrideData2
     valMap.put(hdr, val);
    }
 
-   String projId = valMap.get(experimentId);
+   String expId = valMap.get(experimentId);
    String sampName = valMap.get(sampleId);
 
-   if(projId == null || sampName == null)
+   if(expId == null || sampName == null)
     continue;
 
-   String sampId = sampName+valMap.get(brendaID);
+   String sampId = sampName+valMap.get(brendaID)+valMap.get(cellTypeID)+valMap.get(cellType);
    
-   Experiment eExp = experiments.get(projId);
-
-   String prideID = valMap.get("PRIDE Experiment Accession");
+   Experiment eExp = experiments.get(expId);
 
    if(eExp == null)
    {
-    experiments.put(projId, eExp = new Experiment());
-    eExp.id = projId;
+    experiments.put(expId, eExp = new Experiment());
+    eExp.id = expId;
     
     eExp.attributes.put("Data Source", "Pride");
     
-    if( prideID != null )
-     eExp.attributes.put("Link","http://www.ebi.ac.uk/pride/directLink.do?experimentAccessionNumber="+prideID);
+    if( expId != null )
+     eExp.attributes.put("Link","http://www.ebi.ac.uk/pride/directLink.do?experimentAccessionNumber="+expId);
     
     eExp.attributes.put("Description", valMap.get(description));
     
@@ -157,29 +157,26 @@ public class ReadPrideData2
      
    }
 
-   Sample cSamp = eExp.samples.get(sampId);
+   Map<String, String> cSamp = eExp.samples.get(sampId);
 
    if(cSamp == null)
    {
-    eExp.samples.put(sampId, cSamp = new Sample());
-    cSamp.id = sampId;
-    cSamp.name = sampName;
+    eExp.samples.put(sampId, cSamp = new LinkedHashMap<String, String>());
 
-    cSamp.attributes.put("Name", sampName);
+    cSamp.put("Name", sampName);
     
-    for(String sa : sampleAttributes)
+    for(String sa : sampleAttributes.keySet())
     {
      String av = valMap.get(sa);
 
      if(av != null)
      {
-       cSamp.attributes.put("{"+sa+"}", av);
+       cSamp.put("{"+sa+"}", av);
      }
     }
     
-    if( prideID != null )
-     cSamp.attributes.put("Pride ID", prideID);
    }
+
    String contId = valMap.get(contactName);
 
    if(contId != null)
@@ -188,9 +185,9 @@ public class ReadPrideData2
 
     if(cont == null)
     {
-     eExp.contacts.put(contId, cont = new HashMap<String, String>());
+     eExp.contacts.put(contId, cont = new LinkedHashMap<String, String>());
 
-     for(String sa : contactAttribures)
+     for(String sa : contactAttribures.keySet())
      {
       String av = valMap.get(sa);
 
@@ -208,9 +205,9 @@ public class ReadPrideData2
 
     if(pub == null)
     {
-     eExp.publications.put(pubId, pub = new HashMap<String, String>());
+     eExp.publications.put(pubId, pub = new LinkedHashMap<String, String>());
 
-     for(String sa : publicationAttribures)
+     for(String sa : publicationAttribures.keySet())
      {
       String av = valMap.get(sa);
 
@@ -324,11 +321,11 @@ public class ReadPrideData2
    
    out.println("   ++Samples");
  
-   for( Sample s : e.samples.values() )
+   for( Map.Entry<String,Map<String,String>> mex : e.samples.entrySet() )
    {
-    out.println("       Sample: " + s.id + " (attrs: " + s.attributes.size() + ")");
+    out.println("       Sample: " + mex.getKey() + " (attrs: " + mex.getValue().size() + ")");
 
-    for(Map.Entry<String, String> me : s.attributes.entrySet())
+    for(Map.Entry<String, String> me : mex.getValue().entrySet())
     {
      out.println("         " + me.getKey() + " = " + me.getValue());
      smpAttr.add(me.getKey());
@@ -345,19 +342,15 @@ public class ReadPrideData2
   for(String s : smpAttr)
    out.println(s);
   
-  if( true )
-   return;
+//  if( true )
+//   return;
   
   
-  List<String> localSampAttr = new ArrayList<String>();
  
-  int i=0;
-  
   for( Experiment e : experiments.values() )
   {
-   i++;
-   
-   out = new PrintStream(new File(wDir,i+".age.txt"));
+  
+   out = new PrintStream(new File(wDir,e.id+".age.txt"));
    
    out.print("Group");
    
@@ -366,55 +359,35 @@ public class ReadPrideData2
    
    out.println();
    
-   out.print("GPR-"+e.id);
+   String grpIg = "GPR-"+e.id;
+   
+   out.print(grpIg);
    
    for( String key: e.attributes.keySet() )
     out.print("\t"+e.attributes.get(key));
    
    out.println("\n");
 
+   if( e.contacts.size() != 0 )
+   {
+    printMap(e.contacts,"Contact","?c","contactOf",grpIg,out);
+    
+    out.println();
+   }
+ 
+   if( e.publications.size() != 0 )
+   {
+    printMap(e.publications,"Publication","?p","publicationAbout",grpIg,out);
+    
+    out.println();
+   }
+  
    
    if( e.samples.size() == 0 )
     continue;
-   
-   localSampAttr.clear();
-   
-   for( String sa : sampleAttributes )
-   {
-    for( Sample s : e.samples.values() )
-    {
-     if( s.attributes.containsKey(sa) )
-     {
-      localSampAttr.add(sa);
-      break;
-     }
-    }
-   }
  
-   out.print("Sample\tName");
-   for( String lsa : localSampAttr )
-    out.print("\t{"+lsa+"}");
-
-   out.println("\tbelongsTo");
-//   out.println("\tbelongsTo");
-   
-   for( Sample s : e.samples.values() )
-   {
-    out.print(s.id+"\t"+s.name);
-
-    for( String lsa : localSampAttr )
-    {
-     String val = s.attributes.get(lsa);
-     
-     if( val == null )
-      val="";
-     
-     out.print("\t"+val);
-    }
-    
-    out.println("\tGPR-"+e.id);
-
-   }
+   printMap(e.samples,"Sample",grpIg+"-","belongsTo",grpIg,out);
+  
    
    out.close();
   }
@@ -422,4 +395,41 @@ public class ReadPrideData2
  
  }
 
+ private static void printMap(Map<String,Map<String,String>> attrs, String obj, String idPfx, String rel, String grp, PrintStream out )
+ {
+  Map<String,String> hdrs = new LinkedHashMap<String,String>();
+  
+  for( Map<String,String> line : attrs.values() )
+   for( String hdname : line.keySet() )
+    hdrs.put(hdname, null);
+  
+  out.print(obj);
+  for( String hdname : hdrs.keySet() )
+   out.print("\t"+hdname);
+  
+  out.print("\t"+rel);
+  
+  out.println();
+  
+  int i=0;
+  for( Map<String,String> line : attrs.values() )
+  {
+   i++;
+   out.print(idPfx+i);
+
+   for( String hdname : line.keySet() )
+   {
+    String val = line.get(hdname);
+    
+    if( val == null )
+     val="";
+    out.print("\t"+val);
+   }
+  
+   out.print("\t"+grp);
+   
+   out.println();
+  }
+ 
+ }
 }
