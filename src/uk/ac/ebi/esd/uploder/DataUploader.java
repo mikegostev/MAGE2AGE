@@ -48,11 +48,16 @@ public class DataUploader
 
    HttpPost httppost = new HttpPost("http://127.0.0.1:8888/upload");
 
+   int cnt=0;
+   
    for( String fn : wDir.list() )
    {
     if( ! fn.endsWith(".age.txt") )
      continue;
 
+    if( cnt > 500 )
+     break;
+    
     System.out.println("Loading: "+fn);
     
     FileBody bin = new FileBody(new File(wDir,fn));
@@ -66,7 +71,10 @@ public class DataUploader
     response = httpclient.execute(httppost, responseHandler);
     
     if( "OK".equals(response.trim()) )
+    {
      System.out.println(fn+": OK");
+     cnt++;
+    }
     else
     {
      System.out.println(fn+": ERROR");

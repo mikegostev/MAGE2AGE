@@ -23,7 +23,7 @@ public class ReadPrideData2
  static final String sampleId         = "Sample Name";//"DOI (Digital Object Identifier)";
  static final String sampleName       = "Sample Name";
  static final String pubMedId         = "PubMed ID (CiteXplore)";
- static final String description      = "Experiment Short Label";
+ static final String description      = experimentId;//"Experiment Short Label";
  static final String expTitle         = "Experiment Title";
  static final String refLine          = "Reference Line";
  static final String contactName      = "Contact Name";
@@ -33,32 +33,32 @@ public class ReadPrideData2
   * @param args
   * @throws IOException
   */
- static Set<String>  sampleAttribures = new HashSet<String>();
- static Set<String>  contactAttribures = new HashSet<String>();
- static Set<String>  publicationAttribures = new HashSet<String>();
+ static Map<String,String>  sampleAttribures = new LinkedHashMap<String,String>();
+ static Map<String,String>  contactAttribures = new LinkedHashMap<String,String>();
+ static Map<String,String>  publicationAttribures = new LinkedHashMap<String,String>();
 
  static
  {
 //  sampleAttribures.add("Sample Name");
-  sampleAttribures.add("Sample Description Comment");
-  sampleAttribures.add("Taxonomy Term (NEWT / NCBI Taxon)");
-  sampleAttribures.add("Taxonomy ID (NEWT / NCBI Taxon)");
-  sampleAttribures.add("Tissue Ontology Term (BRENDA)");
-  sampleAttribures.add(brendaID);
-  sampleAttribures.add("Cell Type Term (CL)");
-  sampleAttribures.add("CL ID (Cell Type)");
-  sampleAttribures.add("Gene Ontology Term (GO)");
-  sampleAttribures.add("GO ID (Gene Ontology)");
-  sampleAttribures.add("Human Disease Term (DOID)");
-  sampleAttribures.add("DOID ID (Human Disease)");
+  sampleAttribures.put("Sample Description Comment",null);
+  sampleAttribures.put("Taxonomy Term (NEWT / NCBI Taxon)",null);
+  sampleAttribures.put("Taxonomy ID (NEWT / NCBI Taxon)",null);
+  sampleAttribures.put("Tissue Ontology Term (BRENDA)",null);
+  sampleAttribures.put(brendaID,null);
+  sampleAttribures.put("Cell Type Term (CL)",null);
+  sampleAttribures.put("CL ID (Cell Type)",null);
+  sampleAttribures.put("Gene Ontology Term (GO)",null);
+  sampleAttribures.put("GO ID (Gene Ontology)",null);
+  sampleAttribures.put("Human Disease Term (DOID)",null);
+  sampleAttribures.put("DOID ID (Human Disease)",null);
   
-  contactAttribures.add(contactName);
-  contactAttribures.add("Institution");
-  contactAttribures.add("Contact Details (Email)");
+  contactAttribures.put(contactName,null);
+  contactAttribures.put("Institution",null);
+  contactAttribures.put("Contact Details (Email)",null);
   
-  publicationAttribures.add(pubMedId);
-  publicationAttribures.add(doi);
-  publicationAttribures.add(refLine);
+  publicationAttribures.put(pubMedId,null);
+  publicationAttribures.put(doi,null);
+  publicationAttribures.put(refLine,null);
  }
 
  static class Experiment
@@ -66,19 +66,19 @@ public class ReadPrideData2
   String id;
   
   Map<String,String> attributes = new LinkedHashMap<String,String>();
-  Map<String,Sample> samples = new LinkedHashMap<String,Sample>();
+  Map<String,Map<String,String>> samples = new LinkedHashMap<String,Map<String,String>>();
   Map<String,Map<String,String>> publications = new LinkedHashMap<String,Map<String,String>>();
   Map<String,Map<String,String>> contacts = new LinkedHashMap<String,Map<String,String>>();
   
  }
  
- static class Sample
- {
-  String id;
-  String name;
-  
-  Map<String,String> attributes = new LinkedHashMap<String,String>();
- }
+// static class Sample
+// {
+//  String id;
+//  String name;
+//  
+//  Map<String,String> attributes = new LinkedHashMap<String,String>();
+// }
  
  static Map<String, Experiment> experiments = new HashMap<String, Experiment>();
  
@@ -102,7 +102,7 @@ public class ReadPrideData2
   List<String> sampleAttributes = new ArrayList<String>();
 
   for(String h : header )
-   if( sampleAttribures.contains(h) )
+   if( sampleAttribures.containsKey(h) )
     sampleAttributes.add(h);
 
   Map<String,String> valMap = new HashMap<String, String>();
@@ -157,15 +157,13 @@ public class ReadPrideData2
      
    }
 
-   Sample cSamp = eExp.samples.get(sampId);
+   Map<String, String> cSamp = eExp.samples.get(sampId);
 
    if(cSamp == null)
    {
-    eExp.samples.put(sampId, cSamp = new Sample());
-    cSamp.id = sampId;
-    cSamp.name = sampName;
+    eExp.samples.put(sampId, cSamp = new LinkedHashMap<String, String>());
 
-    cSamp.attributes.put("Name", sampName);
+    cSamp.put("Name", sampName);
     
     for(String sa : sampleAttributes)
     {
@@ -173,12 +171,12 @@ public class ReadPrideData2
 
      if(av != null)
      {
-       cSamp.attributes.put("{"+sa+"}", av);
+       cSamp.put("{"+sa+"}", av);
      }
     }
     
     if( prideID != null )
-     cSamp.attributes.put("Pride ID", prideID);
+     cSamp.put("{Pride ID}", prideID);
    }
    String contId = valMap.get(contactName);
 
@@ -188,9 +186,9 @@ public class ReadPrideData2
 
     if(cont == null)
     {
-     eExp.contacts.put(contId, cont = new HashMap<String, String>());
+     eExp.contacts.put(contId, cont = new LinkedHashMap<String, String>());
 
-     for(String sa : contactAttribures)
+     for(String sa : contactAttribures.keySet())
      {
       String av = valMap.get(sa);
 
@@ -208,9 +206,9 @@ public class ReadPrideData2
 
     if(pub == null)
     {
-     eExp.publications.put(pubId, pub = new HashMap<String, String>());
+     eExp.publications.put(pubId, pub = new LinkedHashMap<String, String>());
 
-     for(String sa : publicationAttribures)
+     for(String sa : publicationAttribures.keySet())
      {
       String av = valMap.get(sa);
 
@@ -276,150 +274,87 @@ public class ReadPrideData2
   
   for( Experiment e : experiments.values() )
   {
-   if( e.samples.size() <=1 )
+   if(e.samples.size() <= 10)
     continue;
-   
-   out.println("   Experiment: "+e.id+" (samples: "+e.samples.size()+")");
-   
-   for( Map.Entry<String, String> me: e.attributes.entrySet() )
-   {
-    out.println("     "+me.getKey()+" = "+me.getValue());
-   
-    expAttr.add(me.getKey());
-   }
-   
-   if( e.contacts.size() > 0 )
-   {
-    out.println("   ++Contacts");
-    int i=1;
-    
-    for( Map<String,String> cnt : e.contacts.values() )
-    {
-     for( Map.Entry<String,String> me : cnt.entrySet() )
-      out.println("    "+i+". "+me.getKey()+": "+me.getValue());
-     
-     i++;
-    }
-    
-   }
-   
-   if( e.contacts.size() > 0 )
-   {
-    out.println("   ++Publications");
-    int i=1;
-    
-    for( Map<String,String> cnt : e.publications.values() )
-    {
-     for( Map.Entry<String,String> me : cnt.entrySet() )
-      out.println("    "+i+". "+me.getKey()+": "+me.getValue());
-     
-     i++;
-    }
-    
-   }
 
-   
-   if( e.samples.size() == 0 )
-    continue;
-   
-   out.println("   ++Samples");
- 
-   for( Sample s : e.samples.values() )
-   {
-    out.println("       Sample: " + s.id + " (attrs: " + s.attributes.size() + ")");
+   out = new PrintStream(new File(wDir, e.id + ".age.txt"));
 
-    for(Map.Entry<String, String> me : s.attributes.entrySet())
-    {
-     out.println("         " + me.getKey() + " = " + me.getValue());
-     smpAttr.add(me.getKey());
-    }
-   }
-  }
-  
-  out.println("\nExpreriment attributes");
-  
-  for(String s : expAttr)
-   out.println(s);
-
-  out.println("\nSample attributes");
-  for(String s : smpAttr)
-   out.println(s);
-  
-  if( true )
-   return;
-  
-  
-  List<String> localSampAttr = new ArrayList<String>();
- 
-  int i=0;
-  
-  for( Experiment e : experiments.values() )
-  {
-   i++;
-   
-   out = new PrintStream(new File(wDir,i+".age.txt"));
-   
    out.print("Group");
-   
-   for( String key: e.attributes.keySet() )
-    out.print("\t"+key);
-   
+
+   for(String key : e.attributes.keySet())
+    out.print("\t" + key);
+
    out.println();
-   
-   out.print("GPR-"+e.id);
-   
-   for( String key: e.attributes.keySet() )
-    out.print("\t"+e.attributes.get(key));
-   
+
+   String grpIg = "GPR-" + e.id;
+
+   out.print(grpIg);
+
+   for(String key : e.attributes.keySet())
+    out.print("\t" + e.attributes.get(key));
+
    out.println("\n");
 
-   
-   if( e.samples.size() == 0 )
+   if(e.contacts.size() != 0)
+   {
+    printMap(e.contacts, "Person", "?c", "contactOf", grpIg, out);
+
+    out.println();
+   }
+
+   if(e.publications.size() != 0)
+   {
+    printMap(e.publications, "Publication", "?p", "publicationAbout", grpIg, out);
+
+    out.println();
+   }
+
+   if(e.samples.size() == 0)
     continue;
-   
-   localSampAttr.clear();
-   
-   for( String sa : sampleAttributes )
-   {
-    for( Sample s : e.samples.values() )
-    {
-     if( s.attributes.containsKey(sa) )
-     {
-      localSampAttr.add(sa);
-      break;
-     }
-    }
-   }
- 
-   out.print("Sample\tName");
-   for( String lsa : localSampAttr )
-    out.print("\t{"+lsa+"}");
 
-   out.println("\tbelongsTo");
-//   out.println("\tbelongsTo");
-   
-   for( Sample s : e.samples.values() )
-   {
-    out.print(s.id+"\t"+s.name);
+   printMap(e.samples, "Sample", grpIg + "-", "belongsTo", grpIg, out);
 
-    for( String lsa : localSampAttr )
-    {
-     String val = s.attributes.get(lsa);
-     
-     if( val == null )
-      val="";
-     
-     out.print("\t"+val);
-    }
-    
-    out.println("\tGPR-"+e.id);
-
-   }
-   
    out.close();
   }
 
- 
- }
+  
+  }
 
+  private static void printMap(Map<String,Map<String,String>> attrs, String obj, String idPfx, String rel, String grp, PrintStream out )
+  {
+   Map<String,String> hdrs = new LinkedHashMap<String,String>();
+   
+   for( Map<String,String> line : attrs.values() )
+    for( String hdname : line.keySet() )
+     hdrs.put(hdname, null);
+   
+   out.print(obj);
+   for( String hdname : hdrs.keySet() )
+    out.print("\t"+hdname);
+   
+   out.print("\t"+rel);
+   
+   out.println();
+   
+   int i=0;
+   for( Map<String,String> line : attrs.values() )
+   {
+    i++;
+    out.print(idPfx+i);
+
+    for( String hdname : line.keySet() )
+    {
+     String val = line.get(hdname);
+     
+     if( val == null )
+      val="";
+     out.print("\t"+val);
+    }
+   
+    out.print("\t"+grp);
+    
+    out.println();
+   }
+  
+  }
 }

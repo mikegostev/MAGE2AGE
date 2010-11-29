@@ -58,8 +58,8 @@ public class CustomSDRF
   Map<String,Map<String,String>> termMap = new HashMap<String, Map<String,String>>();
 
   
-  File wDir = new File("/home/mike/BioSD/ae");
-  File outDir = new File("/home/mike/BioSD/age-tab4");
+  File wDir = new File("e:/home/mike/BioSD/ae");
+  File outDir = new File("C:/Documents and Settings/Mike/My Documents/BioSD/AE");
 
   for(File expDir : wDir.listFiles())
   {
@@ -70,7 +70,7 @@ public class CustomSDRF
 
     String expName = expDir.getName();
 
-//    if( ! "E-AFMX-3".equals(expName) )
+//    if( ! "E-GEOD-16996".equals(expName) )
 //     continue;
     
     String expId="GAE-"+expName;
@@ -92,6 +92,8 @@ public class CustomSDRF
     
     File idfFile = new File(expDir, expName + ".idf.txt");
     File sdrfFile = new File(expDir, expName + ".sdrf.txt");
+   
+    List<String> parts = new ArrayList<String>(30);
 
     try
     {
@@ -104,57 +106,63 @@ public class CustomSDRF
 
       while((str = in.readLine()) != null)
       {
-       String[] strArr = str.split("[\\t]");
+       parts.clear();
+       StringUtil.splitExcelString(str, "\t", parts);
+       
+       if( parts.size() == 0 )
+        continue;
+       
+//       String[] strArr = str.split("[\\t]");
 
-       if("Investigation Title".equals(strArr[0]) && strArr.length > 1 && strArr[1].trim().length() > 0)
-        invTitle = strArr[1];
-       else if("Experiment Description".equals(strArr[0]) && strArr.length > 1 && strArr[1].trim().length() > 0)
-        expDescr = strArr[1];
-       else if("Public Release Date".equals(strArr[0]) && strArr.length > 1 && strArr[1].trim().length() > 0)
-        relsDate = strArr[1];
-       else if("Date of Experiment".equals(strArr[0]) && strArr.length > 1 && strArr[1].trim().length() > 0)
-        expDate = strArr[1];
-       else if(strArr[0].startsWith("Person "))
+       if("Investigation Title".equals(parts.get(0)) && parts.size() > 1 && parts.get(1).trim().length() > 0)
+        invTitle = parts.get(1);
+       else if("Experiment Description".equals(parts.get(0)) && parts.size() > 1 && parts.get(1).trim().length() > 0)
+        expDescr = parts.get(1);
+       else if("Public Release Date".equals(parts.get(0)) && parts.size() > 1 && parts.get(1).trim().length() > 0)
+        relsDate = parts.get(1);
+       else if("Date of Experiment".equals(parts.get(0)) && parts.size() > 1 && parts.get(1).trim().length() > 0)
+        expDate = parts.get(1);
+       else if(parts.get(0).startsWith("Person "))
        {
-        String key = strArr[0].substring(7);
+        String key = parts.get(0).substring(7);
         persKeys.add(key);
-        processIDFObjLine(key, strArr, persons);
+        processIDFObjLine(key, parts, persons);
         
         registerTerm(key, expName, personHeaders);
        }
-       else if(strArr[0].startsWith("Term Source "))
+       else if(parts.get(0).startsWith("Term Source "))
        {
-        String key = strArr[0].substring(12);
+        String key = parts.get(0).substring(12);
         termsKeys.add(key);
-        processIDFObjLine(key, strArr, terms);
+        processIDFObjLine(key, parts, terms);
        }
-       else if(strArr[0].startsWith("Publication Status Term Source"))
+       else if(parts.get(0).startsWith("Publication Status Term Source"))
        {
         String key = "Status[Term Source]";
         pubsKeys.add(key);
-        processIDFObjLine(key, strArr, pubs);
+        processIDFObjLine(key, parts, pubs);
         
         registerTerm(key, expName, pubHeaders);
        }
-       else if(strArr[0].startsWith("Publication "))
+       else if(parts.get(0).startsWith("Publication "))
        {
-        String key = strArr[0].substring(12);
+        String key = parts.get(0).substring(12);
         pubsKeys.add(key);
-        processIDFObjLine(key, strArr, pubs);
+        processIDFObjLine(key, parts, pubs);
         
         registerTerm(key, expName, pubHeaders);
        }
-       else if(strArr[0].startsWith("PubMed "))
+       else if(parts.get(0).startsWith("PubMed "))
        {
         String key = "PubMed ID";
         pubsKeys.add(key);
-        processIDFObjLine(key, strArr, pubs);
+        processIDFObjLine(key, parts, pubs);
         
         registerTerm(key, expName, pubHeaders);
        }
-       else if(strArr[0].startsWith("Comment[") && strArr.length > 1 && strArr[1].trim().length() > 0)
+       else if(parts.get(0).startsWith("Comment[") && parts.size() > 1 && parts.get(1).trim().length() > 0)
        {
-        comments.put(strArr[0].substring(8, strArr[0].length() - 1), strArr[1]);
+        comments.put(parts.get(0).substring(8, parts.get(0).length() - 1), parts.get(1));
        }
       }
 
@@ -526,9 +534,9 @@ public class CustomSDRF
   return q;
  }
 
- private static void processIDFObjLine(String key, String[] strArr, List<Map<String, String>> persons)
+ private static void processIDFObjLine(String key, List<String> strArr, List<Map<String, String>> persons)
  {
-  int dif=strArr.length -1 - persons.size();
+  int dif=strArr.size() -1 - persons.size();
   if( dif > 0 )
   {
    for( int i=0; i < dif; i++ )
@@ -536,9 +544,9 @@ public class CustomSDRF
   }
   
   
-  for( int i=0; i < strArr.length -1; i++ )
+  for( int i=0; i < strArr.size() -1; i++ )
   {
-   String val = strArr[i+1].trim();
+   String val = strArr.get(i+1).trim();
    
    if( val.length() == 0 )
     continue;

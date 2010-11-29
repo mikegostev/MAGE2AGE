@@ -31,6 +31,7 @@ public class ReadPrideData3
  static final String doi              = "DOI (Digital Object Identifier)";
  static final String cellType         = "Cell Type Term (CL)";
  static final String cellTypeID       = "CL ID (Cell Type)";
+ static final String projectName      = "Project Name";
  /**
   * @param args
   * @throws IOException
@@ -154,6 +155,9 @@ public class ReadPrideData3
     
     if( valMap.containsKey(expTitle) )
      eExp.attributes.put("{"+expTitle+"}", valMap.get(expTitle) );
+
+    if( valMap.containsKey(projectName) )
+     eExp.attributes.put("{"+projectName+"}", valMap.get(projectName) );
      
    }
 
@@ -370,7 +374,7 @@ public class ReadPrideData3
 
    if( e.contacts.size() != 0 )
    {
-    printMap(e.contacts,"Contact","?c","contactOf",grpIg,out);
+    printMap(e.contacts,"Person","?c","contactOf",grpIg,out);
     
     out.println();
    }
