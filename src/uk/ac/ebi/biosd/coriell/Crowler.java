@@ -3,6 +3,7 @@ package uk.ac.ebi.biosd.coriell;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.HttpURLConnection;
@@ -27,7 +28,8 @@ public class Crowler
  private static Pattern familyPat = Pattern.compile("/FamilyTypeSubDetail.aspx.+?fam=(\\w+)");
  private static Pattern panelPat = Pattern.compile("/Panel_Detail.aspx.+?Ref=(\\w+)");
  
- private static File cacheDir = new File("x:/cache");
+ private File cacheDir;
+ private File logFile;
  
  private Set<String> visitedLinks = new HashSet<String>();
  
@@ -51,19 +53,29 @@ public class Crowler
   */
  public static void main(String[] args)
  {
-  Crowler crwlr = new Crowler();
+  if( args.length != 1 )
+  {
+   System.err.println("Please specify cache path in command line");
+   return;
+  }
   
-  crwlr.processURL( startPage, 0 );
+  Crowler crwlr = new Crowler( args[0] );
+  
+  crwlr.processURL( startPage, startPage, 0 );
 
  }
  
- public Crowler()
+ public Crowler( String cachePath)
  {
+  cacheDir = new File(cachePath);
+  
   if( ! cacheDir.exists() )
    cacheDir.mkdirs();
+  
+  logFile = new File(cacheDir,".log");
  }
  
- private void processURL( URL url, int lvl )
+ private void processURL( URL url, URL parent, int lvl )
  {
   Page page = null;
 
@@ -88,6 +100,18 @@ public class Crowler
    }
    catch(IOException e)
    {
+    try
+    {
+     FileWriter wr  = new FileWriter(logFile, true);
+     
+     wr.append(url.toExternalForm()+" Referer: "+parent.toExternalForm()+"\n");
+     wr.close();
+    }
+    catch(IOException ioe)
+    {
+    }
+
+    
     System.err.println("Can't load page: " + url + " Error: " + e.getMessage());
     return;
    }
@@ -102,7 +126,7 @@ public class Crowler
    if(visitedLinks.contains(link.toExternalForm()))
     continue;
 
-   processURL(link, lvl+1);
+   processURL(link, url, lvl+1);
   }
  }
  
