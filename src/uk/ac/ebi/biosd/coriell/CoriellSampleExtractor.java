@@ -24,6 +24,8 @@ public class CoriellSampleExtractor
   HttpURLConnection conn = (HttpURLConnection)smpUrl.openConnection();
   
   Tidy tidy = new Tidy();
+  tidy.setShowWarnings(false);
+  tidy.setQuiet(true);
   tidy.setXHTML(false);
   tidy.setInputEncoding("UTF-8");
   
@@ -36,6 +38,8 @@ public class CoriellSampleExtractor
   NodeList nds = doc.getElementsByTagName("h2");
   
  
+  Sample s = new Sample();
+  
   for( int i=0; i < nds.getLength(); i++ )
   {
    NodeList snds = nds.item(i).getChildNodes();
@@ -64,7 +68,7 @@ public class CoriellSampleExtractor
       Node cell0bold = cell0.getFirstChild();
       
       if( ! "b".equals(cell0bold.getNodeName() ) )
-       continue;
+       break;
       
       Node cell0text = cell0bold.getFirstChild();
       String name = cell0text.getNodeValue();
@@ -73,14 +77,21 @@ public class CoriellSampleExtractor
       
       String value = null;
       
-//      if( "span".equals(cellCont.getNodeName()) )
-//       cellCont=cellCont.getFirstChild();
+      if( "span".equals(cellCont.getNodeName()) )
+       cellCont=cellCont.getFirstChild();
       
       if( "a".equals(cellCont.getNodeName()) )
       {
        value=cellCont.getAttributes().getNamedItem("href").getNodeValue();
        URL ref = new URL(smpUrl, value);
+
+       sb.setLength(0);
+       convertNode2Text(cellCont,sb);
+
+       s.addAttibute(name,sb.toString());
+       System.out.println(name+" = "+sb.toString());
        
+       name = name+"[link]";
        value=ref.toExternalForm();
       }
       else
@@ -90,9 +101,51 @@ public class CoriellSampleExtractor
        value = sb.toString();
       }
       
+      s.addAttibute(name,value);
+      
       System.out.println(name+" = "+value);
      }
     
+    }
+    else if( "Publications".equals(val) )
+    {
+     Node table = nds.item(i).getNextSibling();
+
+     Publication cPub = null;
+     
+     NodeList rows = table.getChildNodes();
+     for( int k=0; k< rows.getLength(); k++ )
+     {
+      Node row = rows.item(k);
+
+      if( ! "tr".equals(row.getNodeName()) )
+       continue;
+      
+      NodeList cells = rows.item(k).getChildNodes();
+      
+      sb.setLength(0);
+      convertNode2Text(cells.item(0),sb);
+      String cellVal = sb.toString().trim();
+      
+      if( cellVal.length() <=1  )
+      {
+       cPub=null;
+       continue;
+      }
+
+      if( cPub == null )
+      {
+       cPub = new Publication();
+       cPub.setTitle(cellVal);
+       
+       s.addPublication( cPub );
+      }
+      else
+      {
+       int pos = cellVal.indexOf(":");
+       cPub.setPubMed(cellVal.substring(pos+1).trim());
+      }
+     }
     }
    }
   }
