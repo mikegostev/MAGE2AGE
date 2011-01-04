@@ -1,6 +1,8 @@
 package uk.ac.ebi.biosd.coriell;
 
-public class Publication
+import java.io.Serializable;
+
+public class Publication implements Serializable
 {
  String title;
  String pubMed;
