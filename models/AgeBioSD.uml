@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<uml:Package xmi:version="2.1" xmlns:xmi="http://schema.omg.org/spec/XMI/2.1" xmlns:uml="http://www.eclipse.org/uml2/3.0.0/UML" xmi:id="_jptyYL1FEeCKA77Rkxo7EA" name="AgeBioSD">
+  <elementImport xmi:id="_jq6FdL1FEeCKA77Rkxo7EA">
+    <importedElement xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#Boolean"/>
+  </elementImport>
+  <elementImport xmi:id="_jrDPIL1FEeCKA77Rkxo7EA">
+    <importedElement xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+  </elementImport>
+  <elementImport xmi:id="_jrDPIb1FEeCKA77Rkxo7EA">
+    <importedElement xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#UnlimitedNatural"/>
+  </elementImport>
+  <elementImport xmi:id="_jrDPIr1FEeCKA77Rkxo7EA">
+    <importedElement xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#Integer"/>
+  </elementImport>
+  <packagedElement xmi:type="uml:Class" xmi:id="_kzLU0L1FEeCKA77Rkxo7EA" name="Database"/>
+  <packagedElement xmi:type="uml:Class" xmi:id="_oZZ0oL1FEeCKA77Rkxo7EA" name="Sample"/>
+  <packagedElement xmi:type="uml:Class" xmi:id="_pQ-84L1FEeCKA77Rkxo7EA" name="Publication"/>
+  <packagedElement xmi:type="uml:Class" xmi:id="_qWt14L1FEeCKA77Rkxo7EA" name="Group"/>
+  <packagedElement xmi:type="uml:Class" xmi:id="_sfNzcL1FEeCKA77Rkxo7EA" name="TermSource"/>
+  <packagedElement xmi:type="uml:Class" xmi:id="_tvYa0L1FEeCKA77Rkxo7EA" name="Person"/>
+  <packagedElement xmi:type="uml:Class" xmi:id="_un268L1FEeCKA77Rkxo7EA" name="Organization"/>
+</uml:Package>
