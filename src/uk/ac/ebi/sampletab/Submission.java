@@ -5,19 +5,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import uk.ac.ebi.sampletab.STParser.Group;
-import uk.ac.ebi.sampletab.STParser.Sample;
-
 import com.pri.util.collection.IntHashMap;
 import com.pri.util.collection.IntMap;
 
 public class Submission extends ContainerObject
 {
  private IntMap<List<Sample>> sampleBlocks = new IntHashMap<List<Sample>>();
- private Map<String,Sample> sampleMap = new HashMap<String, STParser.Sample>();
+ private Map<String,Sample> sampleMap = new HashMap<String,Sample>();
 
  private IntMap<List<Group>> groupBlocks = new IntHashMap<List<Group>>();
- private Map<String,Group> groupMap = new HashMap<String, STParser.Group>();
+ private Map<String,Group> groupMap = new HashMap<String,Group>();
  
  public Sample addSample(Sample sample)
  {
@@ -36,7 +33,7 @@ public class Submission extends ContainerObject
   List<Sample> blkList = sampleBlocks.get(sample.getBlock());
   
   if( blkList == null )
-   sampleBlocks.put(sample.getBlock(), blkList = new ArrayList<STParser.Sample>(100) );
+   sampleBlocks.put(sample.getBlock(), blkList = new ArrayList<Sample>(100) );
   
   blkList.add(sample);
   
@@ -60,7 +57,7 @@ public class Submission extends ContainerObject
   List<Group> blkList = groupBlocks.get(group.getBlock());
   
   if( blkList == null )
-   groupBlocks.put(group.getBlock(), blkList = new ArrayList<STParser.Group>(100) );
+   groupBlocks.put(group.getBlock(), blkList = new ArrayList<Group>(100) );
   
   blkList.add(group);
   

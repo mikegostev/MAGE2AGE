@@ -30,6 +30,9 @@ public class AnnotatedObject
  
  public AnnotatedObject getAnnotation( String key )
  {
+  if( annotations == null )
+   return null;
+  
   return annotations.get(key);
  }
  

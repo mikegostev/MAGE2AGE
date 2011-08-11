@@ -3,7 +3,7 @@ package uk.ac.ebi.sampletab;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Group extends AnnotatedObject
+public class Group extends ContainerObject
 {
  private int block;
  private List<Sample> samples;

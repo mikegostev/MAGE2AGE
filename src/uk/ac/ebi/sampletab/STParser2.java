@@ -79,11 +79,11 @@ public class STParser2
      if(parts.size() != 2)
       throw new STParseException("Invalid number of values for tag: '" + p0 + "' Expected: 1");
 
-     sub.addAnnotation(p0, new Attribute(p0, parts.get(1)) );
+     sub.addAnnotation(p0, new Attribute(p0, parts.get(1), reader.getLineNumber()) );
     }
     else
     {
-     List<AnnotatedObject> objs = sub.getAttachedObjects(objName);
+     List<WellDefinedObject> objs = sub.getAttachedObjects(objName);
      
      if( objs.size() < parts.size()-1 )
       for( int k=0; k < parts.size()-1-objs.size(); k++ )
@@ -92,14 +92,14 @@ public class STParser2
      
      for( int i=0; i < parts.size()-1; i++ )
      {
-      AnnotatedObject a = objs.get(i);
+      WellDefinedObject a = objs.get(i);
       
       if( a == null )
-       objs.set(i, a=new AnnotatedObject());
+       objs.set(i, a=new WellDefinedObject(objName));
       
-      String nm = p0.substring(objName.length()+1);
+//      String nm = p0.substring(objName.length()+1);
       
-      a.addAnnotation(nm, new Attribute(nm, parts.get(i+1) ) );
+      a.setAttribute(new Attribute(p0, parts.get(i+1), reader.getLineNumber() ) );
      }
     } 
    }
@@ -112,8 +112,8 @@ public class STParser2
      for( String p : parts )
       headerLine.add( p.trim() );
      
-     if( ! headerLine.get(0).equals(SAMPLENAME) )
-      throw new STParseException("The first column should be "+SAMPLENAME+" Line: "+reader.getLineNumber());
+     if( ! headerLine.get(0).equals(Names.SAMPLENAME) )
+      throw new STParseException("The first column should be "+Names.SAMPLENAME+" Line: "+reader.getLineNumber());
     }
     else
     {
@@ -126,6 +126,7 @@ public class STParser2
      Attribute attribute = null;
      
      int blockNum=0;
+     int atObjNum=0;
      
      int runlen = parts.size();
     
@@ -133,7 +134,7 @@ public class STParser2
      {
       String hdr = headerLine.get(i);
       
-      if( SAMPLENAME.equals(hdr) )
+      if( Names.SAMPLENAME.equals(hdr) )
       {
        blockNum++;
        
@@ -169,11 +170,12 @@ public class STParser2
        sample = new Sample();
        sample.setBlock(blockNum);
        
-       sample.addAnnotation(SAMPLENAME_AGE, attribute = new Attribute(SAMPLENAME_AGE, parts.get(i) ) );
+       sample.addAnnotation(Names.SAMPLENAME_AGE, attribute = new Attribute(Names.SAMPLENAME_AGE, parts.get(i), i ) );
       }
-      if( GROUPNAME.equals(hdr) )
+      if( Names.GROUPNAME.equals(hdr) )
       {
        blockNum++;
+       atObjNum=0;
        
        if( sample != null )
        {
@@ -194,44 +196,39 @@ public class STParser2
        group = new Group();
        group.setBlock(blockNum);
        
-       group.addAnnotation(GROUPNAME_AGE, attribute = new Attribute(GROUPNAME_AGE, parts.get(i) ) );
+       group.addAnnotation(Names.GROUPNAME_AGE, attribute = new Attribute(Names.GROUPNAME_AGE, parts.get(i), i ) );
       }
-      else if( TERMSOURCEREF.equals(hdr) )
+      else if( Names.propertyToObject.containsKey(hdr) && group != null )
       {
-       List<AnnotatedObject> tss = sub.getAttachedObjects( TERMSOURCE );
+       String clsName = Names.propertyToObject.get(hdr);
        
-       if( tss == null )
-        throw new STParseException("No term sources defined. Line: "+reader.getLineNumber() );
+       List<WellDefinedObject> oLst = group.getAttachedObjects( clsName );
        
-       String tsRef = parts.get(i).trim();
+       WellDefinedObject obj = null;
        
-       if( tsRef.length() == 0 )
-        continue;
-       
-       boolean found = false;
-       
-       for( AnnotatedObject a : tss )
+       if( oLst.size() <= atObjNum )
+        oLst.add( obj = new WellDefinedObject(clsName) );
+       else
        {
-        if( tsRef.equals( a.getAnnotation( "Name" ).getValue() ) )
-        {
-         found = true;
-         break;
-        }
+        obj = oLst.get(atObjNum);
+        
+        Attribute cAttr = obj.getAttribute(hdr);
+        
+        if( cAttr != null )
+         oLst.add( obj = new WellDefinedObject(clsName) );
        }
        
-       if( ! found )
-        throw new STParseException("No such term source defined: '"+tsRef+"'. Line: "+reader.getLineNumber() );
-       
-       attribute.addAnnotation(TERMSOURCEREF, new Attribute(TERMSOURCEREF,tsRef));
+       obj.setAttribute( new Attribute( hdr, parts.get(i), i) );
+        
       }
-      else if( UNIT.equals( hdr ))
+      else if( Names.UNIT.equals( hdr ))
       {
        String value = parts.get(i).trim();
        
        if( value.length() > 0 )
-        attribute.addAnnotation(UNIT, new Attribute(UNIT,value));
+        attribute.addAnnotation(Names.UNIT, new Attribute(Names.UNIT,value,i));
       }
-      else if( hdr.endsWith(ACCESSIONSUFFIX) )
+      else if( hdr.endsWith(Names.ACCESSIONSUFFIX) )
       {
        if( group != null )
         group.setValue(parts.get(i).trim());
@@ -249,7 +246,7 @@ public class STParser2
        if(attr != null)
         attr.addValue(value);
        else
-        host.addAnnotation(hdr, new Attribute(hdr, value));
+        host.addAnnotation(hdr, new Attribute(hdr, value, i));
       }
      }
      

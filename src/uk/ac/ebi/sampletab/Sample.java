@@ -3,7 +3,6 @@ package uk.ac.ebi.sampletab;
 import java.util.ArrayList;
 import java.util.List;
 
-import uk.ac.ebi.sampletab.STParser.Group;
 
 public class Sample extends AnnotatedObject
 {

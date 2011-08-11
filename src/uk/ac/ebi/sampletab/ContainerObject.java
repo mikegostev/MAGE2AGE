@@ -1,114 +1,22 @@
 package uk.ac.ebi.sampletab;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 
 public class ContainerObject extends AnnotatedObject
 {
- private List<TermSource>   termSources;
- private List<Person>       persons;
- private List<Organization> organizations;
- private List<Database>     databases;
-
- public TermSource addTermSource( TermSource ts )
- {
-  if( termSources == null )
-  {
-   termSources = new ArrayList<TermSource>();
-   
-   termSources.add(ts);
-   
-   return ts;
-  }
-  
-  for( TermSource ets : termSources )
-   if( ets.equals( ts ) )
-    return ets;
-  
-  termSources.add(ts);
-  
-  return ts;
- }
-
+ private Map<String, List<WellDefinedObject>> attachedObjects = new HashMap<String, List<WellDefinedObject>>();
  
- public List<TermSource> getTermSources()
+ public List<WellDefinedObject> getAttachedObjects(String s)
  {
-  return termSources;
- }
-
- 
- public Person addPerson( Person ts )
- {
-  if( persons == null )
-  {
-   persons = new ArrayList<Person>();
-   
-   persons.add(ts);
-   
-   return ts;
-  }
+  List<WellDefinedObject> list = attachedObjects.get(s);
   
-  for( Person ets : persons )
-   if( ets.equals( ts ) )
-    return ets;
+  if( list == null )
+   attachedObjects.put(s, list = new ArrayList<WellDefinedObject>() );
   
-  persons.add(ts);
-  
-  return ts;
- }
-
- public List<Person> getPersons()
- {
-  return persons;
- }
-
- public Organization addOrganization( Organization ts )
- {
-  if( organizations == null )
-  {
-   organizations = new ArrayList<Organization>();
-   
-   organizations.add(ts);
-   
-   return ts;
-  }
-  
-  for( Organization ets : organizations )
-   if( ets.equals( ts ) )
-    return ets;
-  
-  organizations.add(ts);
-  
-  return ts;
- }
-
- public List<Organization> getOrganizations()
- {
-  return organizations;
- }
-
- public Database addOrganization( Database ts )
- {
-  if( databases == null )
-  {
-   databases = new ArrayList<Database>();
-   
-   databases.add(ts);
-   
-   return ts;
-  }
-  
-  for( Database ets : databases )
-   if( ets.equals( ts ) )
-    return ets;
-  
-  databases.add(ts);
-  
-  return ts;
- }
- 
- public List<Database> getDatabases()
- {
-  return databases;
+  return list;
  }
 }

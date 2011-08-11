@@ -3,8 +3,6 @@ package uk.ac.ebi.sampletab;
 import java.io.File;
 import java.io.PrintStream;
 
-import uk.ac.ebi.sampletab.STParser.Submission;
-
 public class STATConverter
 {
 
@@ -21,7 +19,7 @@ public class STATConverter
   {
    PrintStream out = new PrintStream(outfile);
 
-   Submission sub = STParser.readST(infile);
+   Submission sub = STParser2.readST(infile);
   
    System.out.println(sub.getAttachedObjects(STParser.TERMSOURCE).size());
    
