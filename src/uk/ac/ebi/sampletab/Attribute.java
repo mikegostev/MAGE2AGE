@@ -8,7 +8,7 @@ import java.util.List;
 public class Attribute extends AnnotatedObject
 {
  private String name; 
- private List<Attribute> vals = new ArrayList<Attribute>();
+ private List<Attribute> vals;
  private int order;
  
  public Attribute( String name, String val, int ord )
@@ -48,7 +48,7 @@ public class Attribute extends AnnotatedObject
   if( vals != null )
    return vals;
    
-  return Collections.singletonList( this );
+  return vals=Collections.singletonList( this );
  }
  
  public int getValuesNumber()

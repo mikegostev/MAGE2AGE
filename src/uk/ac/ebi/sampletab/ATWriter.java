@@ -3,6 +3,8 @@ package uk.ac.ebi.sampletab;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -353,6 +355,25 @@ public class ATWriter
    }
   }
   
+ }
+ 
+ private List<AttributeValueExtractor> createAttributeExtractor( Attribute attr )
+ {
+  ArrayList<AttributeValueExtractor> resExtr = new ArrayList<AttributeValueExtractor>();
+  
+  if( attr.getValuesNumber() > 1 && attr.getValuesNumber() <= MAX_INLINE_REPEATS && attr.getAnnotations() == null )
+  {
+   resExtr.add( new AttributeValueExtractor( Collections.singletonList(attr.getName()), 0) );
+  
+  }
+  else
+  {
+   resExtr.add( new AttributeValueExtractor( Collections.singletonList(attr.getName()), 0) );
+  
+   if( attr.getAnnotations() != null )
+  }
+  
+  return resExtr;
  }
  
  private static void collectAttributesInfo(AnnotatedObject s, AttributeInfo parentAttrInfo )

@@ -2,5 +2,9 @@ package uk.ac.ebi.sampletab;
 
 public interface ValueExtractor
 {
- String extract( Sample obj );
+ void setSample( Sample obj );
+ 
+ String extract();
+ 
+ boolean hasValue();
 }

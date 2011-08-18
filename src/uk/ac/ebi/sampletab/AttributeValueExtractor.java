@@ -13,8 +13,10 @@ public class AttributeValueExtractor implements ValueExtractor
  }
  
  @Override
- public String extract( Sample samp )
+ public String extract( )
  {
+  ord+=order;
+  
   AnnotatedObject obj = samp;
   
   Attribute attr=null;
@@ -24,14 +26,14 @@ public class AttributeValueExtractor implements ValueExtractor
    attr = obj.getAnnotation(pel);
    
    if( attr == null )
-    return "";
+    return null;
    
    obj=attr;
   }
   
-  if( order == 0 )
+  if( ord == 0 )
    return attr.getValue();
   
-  return attr.getValues().get(order).getValue();
+  return attr.getValues().get(ord).getValue();
  }
 }

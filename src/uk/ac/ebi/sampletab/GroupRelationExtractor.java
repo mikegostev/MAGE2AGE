@@ -6,19 +6,33 @@ public class GroupRelationExtractor implements ValueExtractor
 {
  private int order;
  private Collection<String> blacklist;
+ private Sample obj;
+ private boolean delivered;
 
  public GroupRelationExtractor( Collection<String> bl, int ord )
  {
   order = ord;
   blacklist = bl;
  }
- 
+
  @Override
- public String extract(Sample samp)
+ public void setSample(Sample sample)
  {
+  obj = sample;
+  delivered=false;
+ }
+
+ @Override
+ public String extract()
+ {
+  if( delivered )
+   return "";
+  
+  delivered = true;
+
   int i=0;
   
-  for( Group g : samp.getGroups() )
+  for( Group g : obj.getGroups() )
   {
    if( blacklist != null && blacklist.contains(g.getValue()) )
     continue;
@@ -30,6 +44,13 @@ public class GroupRelationExtractor implements ValueExtractor
   }
   
   return "";
+
+ }
+
+ @Override
+ public boolean hasValue()
+ {
+  return ! delivered;
  }
 
 }
