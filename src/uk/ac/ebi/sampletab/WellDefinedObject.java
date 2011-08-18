@@ -10,20 +10,16 @@ public class WellDefinedObject extends AnnotatedObject
  {
   className = cls;
   
-  if( ! Names.object2Properties.containsKey(cls) )
+  if( ! Definitions.object2Properties.containsKey(cls) )
    throw new STParseException("Invalid class name");
  }
  
- public void setAttribute( Attribute attr )
+ public void addAnnotation( Attribute attr )
  {
-  if( ! className.equals( Names.propertyToObject.get(attr.getName()) ) )
+  if( ! className.equals( Definitions.propertyToObject.get(attr.getName()) ) )
    throw new STParseException("Invalid property '"+attr.getName()+"' for class '"+className+"'");
 
-  super.addAnnotation(attr.getName(), attr);
+  super.addAnnotation(attr);
  }
- 
- public Attribute getAttribute( String atName )
- {
-  return (Attribute)super.getAnnotation(atName);
- }
+
 }

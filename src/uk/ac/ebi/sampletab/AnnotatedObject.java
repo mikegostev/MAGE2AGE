@@ -8,7 +8,7 @@ public class AnnotatedObject
 {
  private String value;
 
- Map<String,AnnotatedObject> annotations = null;
+ Map<String,Attribute> annotations = null;
 
  public String getValue()
  {
@@ -20,15 +20,15 @@ public class AnnotatedObject
   this.value = accession;
  }
  
- void addAnnotation( String name, AnnotatedObject value )
+ void addAnnotation( Attribute value )
  {
   if( annotations == null )
-   annotations = new LinkedHashMap<String, AnnotatedObject>();
+   annotations = new LinkedHashMap<String, Attribute>();
   
-  annotations.put(name, value);
+  annotations.put(value.getName(), value);
  }
  
- public AnnotatedObject getAnnotation( String key )
+ public Attribute getAnnotation( String key )
  {
   if( annotations == null )
    return null;
@@ -36,11 +36,35 @@ public class AnnotatedObject
   return annotations.get(key);
  }
  
- public Collection<AnnotatedObject> getAnnotations()
+ public Collection<Attribute> getAnnotations()
  {
   if( annotations != null )
    return annotations.values();
   
   return null;
+ }
+ 
+ public boolean equals( Object o )
+ {
+  AnnotatedObject othObj = (AnnotatedObject)o;
+  
+  if( othObj.getAnnotations() == null )
+   return annotations == null;
+
+  if( annotations == null )
+   return false;
+
+  for( Attribute myat : annotations.values() )
+  {
+   Attribute othAttr = othObj.getAnnotation( myat.getName() );
+   
+   if( othAttr == null )
+    return false;
+   
+   if( ! othAttr.equals(myat) )
+    return false;
+  }
+  
+  return true;
  }
 }

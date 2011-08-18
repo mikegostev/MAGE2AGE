@@ -1,6 +1,8 @@
 package uk.ac.ebi.sampletab;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.io.PrintStream;
 
 public class STATConverter
@@ -19,8 +21,14 @@ public class STATConverter
   {
    PrintStream out = new PrintStream(outfile);
 
-   Submission sub = STParser2.readST(infile);
+   Submission sub = STParser3.readST(infile);
   
+   OutputStream outs = new FileOutputStream(outfile);
+   
+   ATWriter.writeAgeTab(sub, outs );
+   
+   outs.close();
+   
    System.out.println(sub.getAttachedObjects(STParser.TERMSOURCE).size());
    
    out.close();

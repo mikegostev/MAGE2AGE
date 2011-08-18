@@ -69,17 +69,17 @@ public class STParser2
    
    if( ! sampleSection )
    {
-    if(! Names.propertyToObject.containsKey(p0))
+    if(! Definitions.propertyToObject.containsKey(p0))
      throw new STParseException("Unknown tag: '" + p0 + "' Line: " + reader.getLineNumber());
 
-    String objName = Names.propertyToObject.get(p0);
+    String objName = Definitions.propertyToObject.get(p0);
 
-    if(objName.equals(Names.SUBMISSION))
+    if(objName.equals(Definitions.SUBMISSION))
     {
      if(parts.size() != 2)
       throw new STParseException("Invalid number of values for tag: '" + p0 + "' Expected: 1");
 
-     sub.addAnnotation(p0, new Attribute(p0, parts.get(1), reader.getLineNumber()) );
+     sub.addAnnotation(new Attribute(p0, parts.get(1), reader.getLineNumber()) );
     }
     else
     {
@@ -99,7 +99,7 @@ public class STParser2
       
 //      String nm = p0.substring(objName.length()+1);
       
-      a.setAttribute(new Attribute(p0, parts.get(i+1), reader.getLineNumber() ) );
+      a.addAnnotation(new Attribute(p0, parts.get(i+1), reader.getLineNumber() ) );
      }
     } 
    }
@@ -112,8 +112,8 @@ public class STParser2
      for( String p : parts )
       headerLine.add( p.trim() );
      
-     if( ! headerLine.get(0).equals(Names.SAMPLENAME) )
-      throw new STParseException("The first column should be "+Names.SAMPLENAME+" Line: "+reader.getLineNumber());
+     if( ! headerLine.get(0).equals(Definitions.SAMPLENAME) )
+      throw new STParseException("The first column should be "+Definitions.SAMPLENAME+" Line: "+reader.getLineNumber());
     }
     else
     {
@@ -134,7 +134,7 @@ public class STParser2
      {
       String hdr = headerLine.get(i);
       
-      if( Names.SAMPLENAME.equals(hdr) )
+      if( Definitions.SAMPLENAME.equals(hdr) )
       {
        blockNum++;
        
@@ -170,9 +170,9 @@ public class STParser2
        sample = new Sample();
        sample.setBlock(blockNum);
        
-       sample.addAnnotation(Names.SAMPLENAME_AGE, attribute = new Attribute(Names.SAMPLENAME_AGE, parts.get(i), i ) );
+       sample.addAnnotation(attribute = new Attribute(Definitions.SAMPLENAME_AGE, parts.get(i), i ) );
       }
-      if( Names.GROUPNAME.equals(hdr) )
+      if( Definitions.GROUPNAME.equals(hdr) )
       {
        blockNum++;
        atObjNum=0;
@@ -196,11 +196,11 @@ public class STParser2
        group = new Group();
        group.setBlock(blockNum);
        
-       group.addAnnotation(Names.GROUPNAME_AGE, attribute = new Attribute(Names.GROUPNAME_AGE, parts.get(i), i ) );
+       group.addAnnotation(attribute = new Attribute(Definitions.GROUPNAME_AGE, parts.get(i), i ) );
       }
-      else if( Names.propertyToObject.containsKey(hdr) && group != null )
+      else if( Definitions.propertyToObject.containsKey(hdr) && group != null )
       {
-       String clsName = Names.propertyToObject.get(hdr);
+       String clsName = Definitions.propertyToObject.get(hdr);
        
        List<WellDefinedObject> oLst = group.getAttachedObjects( clsName );
        
@@ -212,23 +212,35 @@ public class STParser2
        {
         obj = oLst.get(atObjNum);
         
-        Attribute cAttr = obj.getAttribute(hdr);
+        Attribute cAttr = obj.getAnnotation(hdr);
         
         if( cAttr != null )
-         oLst.add( obj = new WellDefinedObject(clsName) );
+        {
+         if( cAttr.getOrder() == i )
+         {
+          if( ! cAttr.getValue().equals( parts.get(i) ) )
+           throw new STParseException("Attached object redefinition. Line: "+reader.getLineNumber()+" Col: "+(i+1));
+         }
+         else
+         {
+          oLst.add( obj = new WellDefinedObject(clsName) );
+          
+          atObjNum++;
+         }
+        }
        }
        
-       obj.setAttribute( new Attribute( hdr, parts.get(i), i) );
-        
+       obj.addAnnotation( new Attribute( hdr, parts.get(i), i) );
+
       }
-      else if( Names.UNIT.equals( hdr ))
+      else if( Definitions.UNIT.equals( hdr ) ||  Definitions.TERMSOURCEREF.equals( hdr ) ||  Definitions.TERMSOURCEID.equals( hdr ) )
       {
        String value = parts.get(i).trim();
        
        if( value.length() > 0 )
-        attribute.addAnnotation(Names.UNIT, new Attribute(Names.UNIT,value,i));
+        attribute.addAnnotation(new Attribute(hdr,value,i));
       }
-      else if( hdr.endsWith(Names.ACCESSIONSUFFIX) )
+      else if( hdr.endsWith(Definitions.ACCESSIONSUFFIX) )
       {
        if( group != null )
         group.setValue(parts.get(i).trim());
@@ -244,9 +256,9 @@ public class STParser2
        Attribute attr = (Attribute) host.getAnnotation(hdr);
 
        if(attr != null)
-        attr.addValue(value);
+        attr.addValue(value,i);
        else
-        host.addAnnotation(hdr, new Attribute(hdr, value, i));
+        host.addAnnotation( new Attribute(hdr, value, i) );
       }
      }
      

@@ -5,11 +5,20 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class Names
+public class Definitions
 {
+ public static final String        MODIDPREFIX                = "$M:";
+ public static final char[]        CUSTIOMCLASSBRACKETS       = new char[]{'{','}'};
+ public static final char[]        QUALIFIERBRACKETS          = new char[]{'[',']'};
+ public static final String        PROTOTYPEID                = "<<ALL>>";
+
+ public static final String        SAMPLE                     = "Sample";
  public static final String        SAMPLENAME                 = "Sample Name";
  public static final String        SAMPLENAME_AGE             = "Name";
+ public static final String        BELONGSTO                  = "belongsTo";
+ public static final String        DERIVEDFROM                = "derivedFrom";
 
+ public static final String        GROUP                      = "Group";
  public static final String        GROUPNAME                  = "Group Name";
  public static final String        GROUPNAME_AGE              = "Name";
 
@@ -17,6 +26,7 @@ public class Names
 
  public static final String        TERMSOURCE                 = "Term Source";
  public static final String        TERMSOURCEREF              = "Term Source REF";
+ public static final String        TERMSOURCEID               = "Term Source ID";
  public static final String        TERMSOURCENAME             = "Term Source Name";
  public static final String        TERMSOURCEURI              = "Term Source URI";
  public static final String        TERMSOURCEVER              = "Term Source Version";

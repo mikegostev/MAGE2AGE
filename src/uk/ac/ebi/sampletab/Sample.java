@@ -73,7 +73,18 @@ public class Sample extends AnnotatedObject
   return group;
   
  }
+ 
+ public List<Group> getGroups()
+ {
+  return groups;
+ }
 
+ public List<Sample> getDeriverFromSamples()
+ {
+  return derivedFrom;
+ }
+
+ 
  public int getBlock()
  {
   return block;

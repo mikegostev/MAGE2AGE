@@ -1,6 +1,7 @@
 package uk.ac.ebi.sampletab;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,5 +19,10 @@ public class ContainerObject extends AnnotatedObject
    attachedObjects.put(s, list = new ArrayList<WellDefinedObject>() );
   
   return list;
+ }
+ 
+ public Collection<String> getAttachedClasses()
+ {
+  return attachedObjects.keySet();
  }
 }
