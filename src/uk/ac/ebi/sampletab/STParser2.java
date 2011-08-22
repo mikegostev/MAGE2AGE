@@ -141,7 +141,7 @@ public class STParser2
        
        if( group != null )
        {
-        if( group.getValue() == null )
+        if( group.getID() == null )
          throw new STParseException("Group has no accession. Line: "+reader.getLineNumber());
         
         group = sub.addGroup( group );
@@ -153,7 +153,7 @@ public class STParser2
        }
        else if( sample != null )
        {
-        if( sample.getValue() == null )
+        if( sample.getID() == null )
          throw new STParseException("Sample has no accession. Line: "+reader.getLineNumber());
 
         sample = sub.addSample( sample );
@@ -179,7 +179,7 @@ public class STParser2
        
        if( sample != null )
        {
-        if( sample.getValue() == null )
+        if( sample.getID() == null )
          throw new STParseException("Sample has no accession. Line: "+reader.getLineNumber());
 
         sample = sub.addSample( sample );
@@ -218,7 +218,7 @@ public class STParser2
         {
          if( cAttr.getOrder() == i )
          {
-          if( ! cAttr.getValue().equals( parts.get(i) ) )
+          if( ! cAttr.getID().equals( parts.get(i) ) )
            throw new STParseException("Attached object redefinition. Line: "+reader.getLineNumber()+" Col: "+(i+1));
          }
          else
@@ -240,12 +240,12 @@ public class STParser2
        if( value.length() > 0 )
         attribute.addAnnotation(new Attribute(hdr,value,i));
       }
-      else if( hdr.endsWith(Definitions.ACCESSIONSUFFIX) )
+      else if( hdr.endsWith("Accession") )
       {
        if( group != null )
-        group.setValue(parts.get(i).trim());
+        group.setID(parts.get(i).trim());
        else
-        sample.setValue(parts.get(i).trim());
+        sample.setID(parts.get(i).trim());
       }
       else
       {
@@ -265,7 +265,7 @@ public class STParser2
      
      if( group != null )
      {
-      if( group.getValue() == null )
+      if( group.getID() == null )
        throw new STParseException("Group has no accession. Line: "+reader.getLineNumber());
       
       group = sub.addGroup( group );
@@ -275,7 +275,7 @@ public class STParser2
      }
      else if( sample != null )
      {
-      if( sample.getValue() == null )
+      if( sample.getID() == null )
        throw new STParseException("Sample has no accession. Line: "+reader.getLineNumber());
 
       sample = sub.addSample( sample );

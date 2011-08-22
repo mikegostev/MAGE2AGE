@@ -10,10 +10,12 @@ public class QualifiedAttributeExtractor implements ValueExtractor
  protected List<QualifierExtractor> qualifierExtractors = new ArrayList<QualifierExtractor>();
  protected int pos;
  protected boolean delivered;
+ private String header;
 
- public QualifiedAttributeExtractor( String name )
+ public QualifiedAttributeExtractor( String name, String hdr )
  {
   this.name = name;
+  header = hdr;
  }
 
  public void addQualifierExtractor( QualifierExtractor ex )
@@ -42,7 +44,7 @@ public class QualifiedAttributeExtractor implements ValueExtractor
   if( ! delivered )
   {
    delivered = true;
-   return obj.getValues().get(pos).getValue();
+   return obj.getValues().get(pos++).getID();
   }
   
   for( ValueExtractor ve : qualifierExtractors )
@@ -59,7 +61,7 @@ public class QualifiedAttributeExtractor implements ValueExtractor
   for( QualifierExtractor ve : qualifierExtractors )
    ve.setAttribute(nAttr);
    
-  return nAttr.getValue();
+  return nAttr.getID();
  }
 
  @Override
@@ -72,6 +74,11 @@ public class QualifiedAttributeExtractor implements ValueExtractor
    return false;
   
   return true;
+ }
+
+ public String getHeader()
+ {
+  return header;
  }
 
 }

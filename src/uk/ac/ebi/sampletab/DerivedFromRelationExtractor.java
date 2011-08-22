@@ -1,18 +1,30 @@
 package uk.ac.ebi.sampletab;
 
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 public class DerivedFromRelationExtractor implements ValueExtractor
 {
  private int order;
- private Collection<String> blacklist;
+ private Set<String> blacklist;
  private Sample obj;
  private boolean delivered;
+ private String header;
 
- public DerivedFromRelationExtractor( Collection<String> bl, int ord )
+ public DerivedFromRelationExtractor( String hdr, Collection<? extends Sample> bl, int ord )
  {
   order = ord;
-  blacklist = bl;
+  
+  if( bl != null )
+  {
+   blacklist = new HashSet<String>();
+   
+   for( Sample bs : bl)
+    blacklist.add(bs.getID());
+  }
+  
+  header = hdr;
  }
  
  @Override
@@ -34,11 +46,11 @@ public class DerivedFromRelationExtractor implements ValueExtractor
   
   for( Sample dfs : obj.getDeriverFromSamples() )
   {
-   if( blacklist != null && blacklist.contains(dfs.getValue()) )
+   if( blacklist != null && blacklist.contains(dfs.getID()) )
     continue;
    
    if( i == order )
-    return dfs.getValue();
+    return dfs.getID();
    
    i++;
   }
@@ -51,5 +63,10 @@ public class DerivedFromRelationExtractor implements ValueExtractor
  public boolean hasValue()
  {
   return ! delivered;
+ }
+
+ public String getHeader()
+ {
+  return header;
  }
 }

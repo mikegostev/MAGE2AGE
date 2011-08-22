@@ -1,87 +1,105 @@
 package uk.ac.ebi.sampletab;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import com.pri.util.collection.Collections;
 
 
 public class Sample extends AnnotatedObject
 {
  private int block;
 
- private List<Sample> derivatives;
- private List<Sample> derivedFrom;
- private List<Group> groups;
+ private Map<String,Sample> derivatives = Collections.emptyMap();
+ private Map<String,Sample> derivedFrom = Collections.emptyMap();
+ private Map<String,Group> groups = Collections.emptyMap();
  
  
  public Sample addDerivative(Sample sample)
  {
-  if( derivatives == null )
+  if( derivatives == Collections.<String,Sample>emptyMap() )
   {
-   derivatives = new ArrayList<Sample>();
+   derivatives = new LinkedHashMap<String,Sample>();
    
-   derivatives.add(sample);
+   derivatives.put(sample.getID(), sample);
    
    return sample;
   }
   
-  for( Sample ds : derivatives )
-   if( ds.getValue().equals(sample.getValue()) )
-    return ds;
+  Sample ds = derivatives.get(sample.getID());
   
-  derivatives.add(sample);
+  if( ds != null )
+   return ds;
+  
+  
+  derivatives.put(sample.getID(), sample);
   
   return sample;
  }
 
  public Sample addDerivedFrom(Sample sample)
  {
-  if( derivedFrom == null )
+  if( derivedFrom == Collections.<String,Sample>emptyMap() )
   {
-   derivedFrom = new ArrayList<Sample>();
+   derivedFrom =  new LinkedHashMap<String,Sample>();
    
-   derivedFrom.add(sample);
+   derivedFrom.put(sample.getID(), sample);
    
    return sample;
   }
   
-  for( Sample ds : derivedFrom )
-   if( ds.getValue().equals(sample.getValue()) )
-    return ds;
+  Sample ds = derivedFrom.get(sample.getID());
+
+  if( ds != null )
+   return ds;
   
-  derivedFrom.add(sample);
+  derivedFrom.put(sample.getID(), sample);
   
   return sample;
  }
 
  public Group addGroup(Group group)
  {
-  if( groups == null )
+  if( groups == Collections.<String,Group>emptyMap() )
   {
-   groups = new ArrayList<Group>();
+   groups = new LinkedHashMap<String,Group>();
    
-   groups.add(group);
+   groups.put(group.getID(), group);
    
    return group;
   }
   
-  for( Group ds : groups )
-   if( ds.getValue().equals(group.getValue()) )
-    return ds;
+  Group ds = groups.get(group.getID());
+
+  if( ds != null )
+   return ds;
+
   
-  groups.add(group);
+  groups.put(group.getID(), group);
   
   return group;
   
  }
  
- public List<Group> getGroups()
+ public Group getGroup( String gId )
  {
-  return groups;
+  return groups.get(gId);
+ }
+ 
+ public Collection<? extends Group> getGroups()
+ {
+  return groups.values();
  }
 
- public List<Sample> getDeriverFromSamples()
+ public Sample getDeriverFromSample( String sId )
  {
-  return derivedFrom;
+  return derivedFrom.get(sId);
+ }
+ 
+ public Collection<? extends Sample> getDeriverFromSamples()
+ {
+  return derivedFrom.values();
  }
 
  

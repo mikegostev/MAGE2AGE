@@ -22,17 +22,17 @@ public class Submission extends ContainerObject
  
  public Sample addSample(Sample sample)
  {
-  Sample s = sampleMap.get(sample.getValue());
+  Sample s = sampleMap.get(sample.getID());
   
   if( s != null )
   {
    if( s.getBlock() != sample.getBlock() )
-     throw new RuntimeException("Sample accession redefinition: "+sample.getValue());
+     throw new RuntimeException("Sample accession redefinition: "+sample.getID());
   
    return s;
   } 
   
-  sampleMap.put( sample.getValue(), sample );
+  sampleMap.put( sample.getID(), sample );
   
   List<Sample> blkList = sampleBlocks.get(sample.getBlock());
   
@@ -67,17 +67,17 @@ public class Submission extends ContainerObject
 
  public Group addGroup(Group group)
  {
-  Group g = groupMap.get(group.getValue());
+  Group g = groupMap.get(group.getID());
   
   if( g != null )
   {
    if( g.getBlock() != group.getBlock() )
-     throw new RuntimeException("Group accession redefinition: "+group.getValue());
+     throw new RuntimeException("Group accession redefinition: "+group.getID());
   
    return g;
   } 
   
-  groupMap.put( group.getValue(), group );
+  groupMap.put( group.getID(), group );
   
   List<Group> blkList = groupBlocks.get(group.getBlock());
   

@@ -4,9 +4,9 @@ package uk.ac.ebi.sampletab;
 public class QualifierExtractor extends QualifiedAttributeExtractor
 {
 
- public QualifierExtractor( String name )
+ public QualifierExtractor( String name, String hdr )
  {
-  super(name);
+  super(name, hdr);
  }
 
  

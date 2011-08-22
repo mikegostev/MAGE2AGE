@@ -10,12 +10,12 @@ public class AnnotatedObject
 
  Map<String,Attribute> annotations = null;
 
- public String getValue()
+ public String getID()
  {
   return value;
  }
 
- public void setValue(String accession)
+ public void setID(String accession)
  {
   this.value = accession;
  }

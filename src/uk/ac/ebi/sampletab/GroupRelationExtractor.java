@@ -1,18 +1,30 @@
 package uk.ac.ebi.sampletab;
 
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 public class GroupRelationExtractor implements ValueExtractor
 {
  private int order;
- private Collection<String> blacklist;
+ private Set<String> blacklist;
  private Sample obj;
  private boolean delivered;
+ private String header;
 
- public GroupRelationExtractor( Collection<String> bl, int ord )
+ public GroupRelationExtractor( String hdr, Collection<? extends Group> bl, int ord )
  {
   order = ord;
-  blacklist = bl;
+
+  if( bl != null )
+  {
+   blacklist = new HashSet<String>();
+   
+   for( Group bs : bl)
+    blacklist.add(bs.getID());
+  }
+  
+  header=hdr;
  }
 
  @Override
@@ -34,11 +46,11 @@ public class GroupRelationExtractor implements ValueExtractor
   
   for( Group g : obj.getGroups() )
   {
-   if( blacklist != null && blacklist.contains(g.getValue()) )
+   if( blacklist != null && blacklist.contains(g.getID()) )
     continue;
    
    if( i == order )
-    return g.getValue();
+    return g.getID();
    
    i++;
   }
@@ -53,4 +65,8 @@ public class GroupRelationExtractor implements ValueExtractor
   return ! delivered;
  }
 
+ public String getHeader()
+ {
+  return header;
+ }
 }

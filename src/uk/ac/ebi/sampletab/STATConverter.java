@@ -13,7 +13,7 @@ public class STATConverter
   */
  public static void main(String[] args)
  {
-  File infile = new File("c:\\temp\\sample.sampletab.txt");
+  File infile = new File("c:\\temp\\1000genomes.sampletab.txt");
   File outfile = new File("c:\\temp\\sample.age.txt");
  
   
@@ -21,12 +21,15 @@ public class STATConverter
   {
    PrintStream out = new PrintStream(outfile);
 
+   
    Submission sub = STParser3.readST(infile);
+   
   
    OutputStream outs = new FileOutputStream(outfile);
    
    ATWriter.writeAgeTab(sub, outs );
-   
+
+  
    outs.close();
    
    System.out.println(sub.getAttachedObjects(STParser.TERMSOURCE).size());

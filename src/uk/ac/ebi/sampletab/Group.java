@@ -20,7 +20,7 @@ public class Group extends ContainerObject
   }
   
   for( Sample ds : samples )
-   if( ds.getValue().equals(sample.getValue()) )
+   if( ds.getID().equals(sample.getID()) )
     return ds;
   
   samples.add(sample);

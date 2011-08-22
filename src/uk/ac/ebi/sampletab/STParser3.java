@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.pri.util.SpreadsheetReader;
+import com.pri.util.TimeLog;
 import com.pri.util.stream.StreamPump;
 
 
@@ -32,6 +33,8 @@ public class STParser3
    enc = "UTF-16";
 
   String text = new String(bais.toByteArray(), enc);
+  
+  TimeLog.reportEvent("Data loaded");
   
   Submission sub = new Submission();
   
@@ -59,10 +62,10 @@ public class STParser3
    
    String p0 = parts.get(0).trim();
    
-   if( p0.length() == 0 || p0.startsWith("#") || p0.equals("[MSI]") )
+   if( p0.length() == 0 || p0.startsWith(Definitions.COMMENTCHAR) || p0.equals(Definitions.MSIBLOCK) )
     continue;
    
-   if( p0.equals("[SCD]") )
+   if( p0.equals(Definitions.SCDBLOCK) )
    {
     sampleSection = true;
     continue;
@@ -70,21 +73,26 @@ public class STParser3
    
    if( ! sampleSection )
    {
-    if(! Definitions.propertyToObject.containsKey(p0))
-     throw new STParseException("Unknown tag: '" + p0 + "' Line: " + reader.getLineNumber());
-
-    String objName = Definitions.propertyToObject.get(p0);
-
-    if(objName.equals(Definitions.SUBMISSION))
+    if( Definitions.submissionProperties.containsKey(p0))
     {
      if(parts.size() != 2)
       throw new STParseException("Invalid number of values for tag: '" + p0 + "' Expected: 1");
 
      sub.addAnnotation(new Attribute(p0, parts.get(1), reader.getLineNumber()) );
+     
+     if( Definitions.SUBMISSIONIDENTIFIER.equals(p0) )
+      sub.setID(parts.get(1));
     }
+    else if( ! Definitions.propertyToObject.containsKey(p0))
+     throw new STParseException("Unknown tag: '" + p0 + "' Line: " + reader.getLineNumber());
     else
     {
+     String objName = Definitions.propertyToObject.get(p0);
+
      List<WellDefinedObject> objs = sub.getAttachedObjects(objName);
+     
+     if( objs == null )
+      sub.setAttachedObjects(objName, objs= new ArrayList<WellDefinedObject>());
      
      if( objs.size() < parts.size()-1 )
       for( int k=0; k < parts.size()-1-objs.size(); k++ )
@@ -155,8 +163,10 @@ public class STParser3
         sample = new Sample();
         sample.setBlock(blockNum);
        
-        sample.setValue(cellVal);
+        sample.setID(cellVal);
         sub.addSample(sample);
+        
+        sample.addAnnotation( new Attribute(Definitions.SAMPLENAME_AGE, cellVal, i));
         
         firstDefLine = true;
        }
@@ -175,7 +185,7 @@ public class STParser3
        attribute = null;
 
       }
-      if( Definitions.GROUPNAME.equals(hdr) )
+      else if( Definitions.GROUPNAME.equals(hdr) )
       {
        blockNum++;
 
@@ -186,8 +196,10 @@ public class STParser3
         group = new Group();
         group.setBlock(blockNum);
        
-        group.setValue(cellVal);
+        group.setID(cellVal);
         sub.addGroup(group);
+
+        group.addAnnotation( new Attribute(Definitions.GROUPNAME_AGE, cellVal, i));
 
         firstDefLine = true;
        }
@@ -206,6 +218,9 @@ public class STParser3
         String clsName = Definitions.propertyToObject.get(hdr);
         
         List<WellDefinedObject> oLst = group.getAttachedObjects( clsName );
+        
+        if( oLst == null )
+         group.setAttachedObjects(clsName, oLst= new ArrayList<WellDefinedObject>());
 
         WellDefinedObject obj = null;
         
@@ -276,53 +291,93 @@ public class STParser3
       }
      }
      
+//     TimeLog.reportEvent("Line read "+p0);
+
+     
      prevLine = parts;
     }
     
    }
   }
   
+  
   List<WellDefinedObject> tsrs = sub.getAttachedObjects( Definitions.TERMSOURCE );
   
-  for( WellDefinedObject ts : tsrs )
-   validateTermSource( ts );
+  if( tsrs != null )
+   for( WellDefinedObject ts : tsrs )
+    validateTermSource( ts );
   
   for( Group g : sub.getGroups() )
   {
-   tsrs = g.getAttachedObjects( Definitions.TERMSOURCE );
+   Attribute accss = g.getAnnotation(Definitions.GROUPACCESSION);
    
-    for( WellDefinedObject ts : tsrs )
+   if( accss == null )
+    throw new STParseException("No accession is defined for group: "+g.getID());
+
+   if( accss.getValuesNumber() != 1 )
+    throw new STParseException("Multiple accessions are defined for group: "+g.getID());
+
+   g.setID(accss.getID());
+   
+   tsrs = g.getAttachedObjects(Definitions.TERMSOURCE);
+
+   if(tsrs == null)
+    continue;
+
+   for(WellDefinedObject ts : tsrs)
+   {
+    validateTermSource(ts);
+
+    boolean found = false;
+
+    List<WellDefinedObject> subTsrs = sub.getAttachedObjects(Definitions.TERMSOURCE);
+
+    if(subTsrs != null)
     {
-     validateTermSource( ts );
-     
-     boolean found = false;
-     
-     for( WellDefinedObject subts : sub.getAttachedObjects( Definitions.TERMSOURCE ) )
+     for(WellDefinedObject subts : subTsrs)
      {
-      if( subts.getValue().equals( ts.getValue() )  )
+      if(subts.getID().equals(ts.getID()))
       {
-       if( subts.equals(ts) )
+       if(subts.equals(ts))
        {
-        found=true;
+        found = true;
         break;
        }
        else
-        throw new STParseException("Term Source conflict: "+subts.getValue());
+        throw new STParseException("Term Source conflict: " + subts.getID());
       }
      }
-     
-     if( ! found )
-      sub.getAttachedObjects( Definitions.TERMSOURCE ).add(ts);
     }
-   
+    else
+     sub.setAttachedObjects(Definitions.TERMSOURCE, subTsrs=new ArrayList<WellDefinedObject>());
+
+    if(!found)
+     subTsrs.add(ts);
+   }
+
   }
   
   counter = 1;
  
-  for( String atClName : sub.getAttachedClasses() )
+  for( String atClName : Definitions.object2Properties.keySet() )
    if( ! atClName.equals( Definitions.TERMSOURCE ) )
     mergeObjects( sub, atClName );
 
+  for( List<Sample> sBlk : sub.getSampleBlocks() )
+  {
+   for( Sample s : sBlk)
+   {
+    Attribute accss = s.getAnnotation(Definitions.SAMPLEACCESSION);
+    
+    if( accss == null )
+     throw new STParseException("No accession is defined for sample: "+s.getID());
+
+    if( accss.getValuesNumber() != 1 )
+     throw new STParseException("Multiple accessions are defined for sample: "+s.getID());
+    
+    s.setID(accss.getID());
+   }
+  }
   
   return sub;
  }
@@ -331,16 +386,22 @@ public class STParser3
  {
   List<WellDefinedObject> subos = sub.getAttachedObjects( atClName );
   
+  if( subos == null )
+   subos = new ArrayList<WellDefinedObject>();
+  
   for( WellDefinedObject obj : subos )
   {
-   if( obj.getValue() == null )
-    obj.setValue(Definitions.MODIDPREFIX+atClName.substring(0,3)+(counter++));
+   if( obj.getID() == null )
+    obj.setID(atClName.substring(0,3)+(counter++));
   }
   
   for( Group g : sub.getGroups() )
   {
    List<WellDefinedObject> grpos = g.getAttachedObjects( atClName );
 
+   if( grpos == null )
+    continue;
+   
    boolean found = false;
    
    for( WellDefinedObject obj : grpos )
@@ -350,32 +411,35 @@ public class STParser3
      if( obj.equals(subobj) )
      {
       found=true;
-      obj.setValue(subobj.getValue());
+      obj.setID(subobj.getID());
       break;
      }
     }
     
     if( ! found )
     {
-     obj.setValue(Definitions.MODIDPREFIX+atClName.substring(0,3)+(counter++));
+     obj.setID(Definitions.MODIDPREFIX+atClName.substring(0,3)+(counter++));
      subos.add(obj);
     }
    }
   }
+  
+  if( subos.size() > 0 )
+   sub.setAttachedObjects(atClName, subos);
  }
 
  private static void validateTermSource(WellDefinedObject ts)
  {
   Attribute attr = ts.getAnnotation( Definitions.TERMSOURCENAME );
   
-  if( attr == null || attr.getValue().length() == 0 )
+  if( attr == null || attr.getID().length() == 0 )
    throw new STParseException("Term Source has no name");
   
-  ts.setValue(attr.getValue());
+  ts.setID(attr.getID());
   
   attr = ts.getAnnotation( Definitions.TERMSOURCEURI );
   
-  if( attr == null || attr.getValue().length() == 0 )
+  if( attr == null || attr.getID().length() == 0 )
    throw new STParseException("Term Source has no URI");
 
  }

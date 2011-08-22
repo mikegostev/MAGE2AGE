@@ -1,5 +1,6 @@
 package uk.ac.ebi.sampletab;
 
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -36,6 +37,19 @@ public class AttributeInfo
   return valuesNumber;
  }
 
+ public int getQualifiersNumber()
+ {
+  return qualifiers==null ? 0 : qualifiers.size();
+ }
+
+ public Collection<AttributeInfo> getQualifiers()
+ {
+  if( qualifiers == null )
+   return null;
+  
+  return qualifiers.values();
+ }
+ 
  public void setValuesNumber(int valuesNumber)
  {
   this.valuesNumber = valuesNumber;

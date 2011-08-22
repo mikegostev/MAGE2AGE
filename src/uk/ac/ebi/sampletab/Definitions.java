@@ -7,7 +7,7 @@ import java.util.Set;
 
 public class Definitions
 {
- public static final String        MODIDPREFIX                = "$M:";
+ public static final String        MODIDPREFIX                = "@M:";
  public static final char[]        CUSTIOMCLASSBRACKETS       = new char[]{'{','}'};
  public static final char[]        QUALIFIERBRACKETS          = new char[]{'[',']'};
  public static final String        PROTOTYPEID                = "<<ALL>>";
@@ -17,12 +17,12 @@ public class Definitions
  public static final String        SAMPLENAME_AGE             = "Name";
  public static final String        BELONGSTO                  = "belongsTo";
  public static final String        DERIVEDFROM                = "derivedFrom";
+ public static final String        SAMPLEACCESSION            = "Sample Accession";
 
  public static final String        GROUP                      = "Group";
  public static final String        GROUPNAME                  = "Group Name";
  public static final String        GROUPNAME_AGE              = "Name";
-
- public static final String        ACCESSIONSUFFIX            = "Accession";
+ public static final String        GROUPACCESSION             = "Group Accession";
 
  public static final String        TERMSOURCE                 = "Term Source";
  public static final String        TERMSOURCEREF              = "Term Source REF";
@@ -66,7 +66,12 @@ public class Definitions
 
  public static final String        UNIT                       = "Unit";
 
- public static Map<String, String> propertyToObject = new HashMap<String, String>()
+ public static final String        COMMENTCHAR                = "#";
+ 
+ public static final String        MSIBLOCK                   = "[MSI]";
+ public static final String        SCDBLOCK                   = "[SCD]";
+ 
+ public static Map<String, String> submissionProperties = new HashMap<String, String>()
  {{
   put(SUBMISSIONTITLE,SUBMISSION);
   put(SUBMISSIONDESCRIPTION,SUBMISSION);
@@ -76,7 +81,10 @@ public class Definitions
   put(SUBMISSIONMODIFICATIONDATE,SUBMISSION);
   put(SUBMISSIONIDENTIFIER,SUBMISSION);
   put(SUBMISSIONREFERENCELAYER,SUBMISSION);
+ }};
 
+ public static Map<String, String> propertyToObject = new HashMap<String, String>()
+ {{
   put(PERSONLASTNAME,PERSON);
   put(PERSONMIDINIT,PERSON);
   put(PERSONFIRSTNAME,PERSON);

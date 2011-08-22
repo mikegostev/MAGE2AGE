@@ -13,7 +13,7 @@ public class Attribute extends AnnotatedObject
  
  public Attribute( String name, String val, int ord )
  {
-  setValue(val);
+  setID(val);
   
   this.name = name;
   order=ord;
@@ -25,7 +25,9 @@ public class Attribute extends AnnotatedObject
   {
    vals = new ArrayList<Attribute>();
    
-   vals.add(this);
+   Attribute thisAt = new Attribute(getName(), super.getID(), getOrder());
+   
+   vals.add(thisAt);
   }
   
   Attribute nattr = new Attribute(getName(), v, ord);
@@ -35,13 +37,13 @@ public class Attribute extends AnnotatedObject
   return nattr;
  }
  
- public String getValue()
- {
-  if( vals == null )
-   return super.getValue();
-  
-  return vals.get(0).getValue();
- }
+// public String getID()
+// {
+//  if( vals == null )
+//   return super.getID();
+//  
+//  return vals.get(0).getID();
+// }
  
  public List<Attribute> getValues()
  {
@@ -69,14 +71,14 @@ public class Attribute extends AnnotatedObject
  public String toString()
  {
   if( vals == null )
-   return getValue();
+   return getID();
   
   StringBuilder sb = new StringBuilder();
   
   sb.append('[');
   
   for( Attribute a : vals)
-   sb.append(a.getValue()).append(',');
+   sb.append(a.getID()).append(',');
 
   sb.setCharAt(sb.length()-1, ']');
   
@@ -102,7 +104,7 @@ public class Attribute extends AnnotatedObject
   
   if( getValuesNumber() == 1 )
   {
-   if( ! getValue().equals( othat.getValue() ) )
+   if( ! getID().equals( othat.getID() ) )
     return false;
    
    if( getAnnotations() != null )
@@ -123,7 +125,7 @@ public class Attribute extends AnnotatedObject
   }
   
   List<Attribute> myVals = getValues();
-  List<Attribute> othVals = getValues();
+  List<Attribute> othVals = othat.getValues();
   
   for( int i=0; i < myVals.size(); i++ )
    if( ! myVals.get(i).equals( othVals.get(i)) )
