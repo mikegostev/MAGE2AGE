@@ -344,6 +344,7 @@ public class ATWriter
   
   }
   
+  out.flush();
  }
 
  private static void writeHeader(List<ValueExtractor> extrs, PrintStream out)
