@@ -13,8 +13,11 @@ public class STATConverter
   */
  public static void main(String[] args)
  {
-  File infile = new File("c:\\temp\\1000genomes.sampletab.txt");
-  File outfile = new File("c:\\temp\\sample.age.txt");
+  if( args.length != 2 )
+   System.err.println("Input and output files are expected");
+  
+  File infile = new File(args[0]);
+  File outfile = new File(args[1]);
  
   
   try
@@ -27,7 +30,7 @@ public class STATConverter
   
    OutputStream outs = new FileOutputStream(outfile);
    
-   ATWriter.writeAgeTab(sub, outs );
+   ATWriter.writeAgeTab( sub, outs );
 
   
    outs.close();
