@@ -15,6 +15,16 @@ public class AnnotatedObject
   return value;
  }
 
+ public String getValue()
+ {
+  return value;
+ }
+
+ public void setValue(String accession)
+ {
+  this.value = accession;
+ }
+
  public void setID(String accession)
  {
   this.value = accession;

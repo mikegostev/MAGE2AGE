@@ -1,15 +1,13 @@
 package uk.ac.ebi.sampletab;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.pri.util.SpreadsheetReader;
+import com.pri.util.StringUtils;
 import com.pri.util.TimeLog;
-import com.pri.util.stream.StreamPump;
 
 
 public class STParser3
@@ -18,22 +16,11 @@ public class STParser3
  
  public static Submission readST( File modFile ) throws IOException
  {
-  ByteArrayOutputStream bais = new ByteArrayOutputStream();
-
-  FileInputStream fis = new FileInputStream(modFile);
-  StreamPump.doPump(fis, bais, false);
-  fis.close();
-
-  bais.close();
-
-  byte[] barr = bais.toByteArray();
-  String enc = "UTF-8";
-
-  if(barr.length >= 2 && (barr[0] == -1 && barr[1] == -2) || (barr[0] == -2 && barr[1] == -1))
-   enc = "UTF-16";
-
-  String text = new String(bais.toByteArray(), enc);
-  
+  return readST( StringUtils.readUnicodeFile( modFile ) );
+ }
+ 
+ public static Submission readST( String text ) throws IOException
+ {
   TimeLog.reportEvent("Data loaded");
   
   Submission sub = new Submission();
