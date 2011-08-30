@@ -31,8 +31,8 @@ public class ATWriter
   {
    String atName = attr.getName();
    
-   if( atName.startsWith(Definitions.SUBMISSION) )
-    atName = atName.substring(Definitions.SUBMISSION.length()+1);
+//   if( atName.startsWith(Definitions.SUBMISSION) )
+//    atName = atName.substring(Definitions.SUBMISSION.length()+1);
 
    out.println();
    out.print( atName );
@@ -48,6 +48,12 @@ public class ATWriter
     continue;
    
    out.println();
+   
+   if( atCl.endsWith("s") || atCl.endsWith("x") )
+    atCl+="es";
+   else
+    atCl+="s";
+    
    out.print(atCl);
    
    for( WellDefinedObject obj : objs )
@@ -96,10 +102,11 @@ public class ATWriter
     {
      out.println();
 
-     if( fld.startsWith(atCl) )
-      out.print(fld.substring(atCl.length()+1) );
-     else
-      out.print(fld);
+//     if( fld.startsWith(atCl) )
+//      out.print(fld.substring(atCl.length()+1) );
+//     else
+     
+     out.print(fld);
 
      for( WellDefinedObject obj : objs )
      {
@@ -125,8 +132,8 @@ public class ATWriter
    {
     String attrName = attr.getName();
     
-    if( attrName.startsWith(Definitions.SUBMISSION) )
-     attrName = attrName.substring(Definitions.SUBMISSION.length()+1);
+//    if( attrName.startsWith(Definitions.SUBMISSION) )
+//     attrName = attrName.substring(Definitions.SUBMISSION.length()+1);
     
     out.println();
     out.print(attrName);
@@ -150,6 +157,11 @@ public class ATWriter
    for( String atOCls : grp.getAttachedClasses() )
    {
     List<WellDefinedObject> objs = grp.getAttachedObjects( atOCls );
+
+    if( atOCls.endsWith("s") || atOCls.endsWith("x") )
+     atOCls+="es";
+    else
+     atOCls+="s";
     
     out.println();
     out.print(atOCls);
