@@ -19,7 +19,7 @@ public class Options
  @Option( name = "-s", usage="Store files in database (assumes -l). Otherwise they will be verified but not stored")
  private boolean store;
  
- @Option( name = "-d", usage="Database base URL", metaVar="URL")
+ @Option( name = "-h", usage="Database base URL", metaVar="URL")
  private String databaseURL;
  
  @Option( name = "-u", usage="User name", metaVar="USER")
@@ -28,6 +28,12 @@ public class Options
  @Option( name = "-p", usage="User password", metaVar="PASS")
  private String password;
  
+ @Option( name = "-update", usage="Update submissions")
+ private boolean update;
+ 
+ @Option( name = "-new", usage="Load new submissions")
+ private boolean newSub;
+
  @Argument
  private List<String> dirs;
 
@@ -74,6 +80,16 @@ public class Options
  public boolean isSaveResponse()
  {
   return saveResponse;
+ }
+
+ public boolean isUpdateSubmissions()
+ {
+  return update;
+ }
+
+ public boolean isNewSubmissions()
+ {
+  return newSub;
  }
 
 }

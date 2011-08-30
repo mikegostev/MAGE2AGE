@@ -8,7 +8,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -179,7 +178,8 @@ public class STLoader
    }
    catch(Exception e)
    {
-    e.printStackTrace();
+    log.println("ERROR: Login failed: "+e.getMessage());
+    log.close();
     
     return;
    }
@@ -258,7 +258,7 @@ public class STLoader
     
     if((!remote) || options.isSave())
     {
-     File atOutFile = new File(atDir, stfile + ".age.txt");
+     File atOutFile = new File(atDir, stfile.getName() + ".age.txt");
 
      try
      {
@@ -277,95 +277,114 @@ public class STLoader
 
     String key = String.valueOf(System.currentTimeMillis());
     
-    MultipartEntity reqEntity = new MultipartEntity();
-   
-    String sbmId = s.getAnnotation( Definitions.SUBMISSIONIDENTIFIER ).getValue();
-    
-    try
+    if(remote)
     {
-     reqEntity.addPart(Constants.uploadHandlerParameter, new StringBody(SubmissionConstants.SUBMISSON_COMMAND) );
-     reqEntity.addPart(SubmissionConstants.SUBMISSON_KEY, new StringBody(key));
-     reqEntity.addPart(SubmissionConstants.SUBMISSON_STATUS, new StringBody(Status.NEW.name()));
-     
-     if( sbmId != null )
-      reqEntity.addPart(SubmissionConstants.SUBMISSON_ID, new StringBody(s.getAnnotation( Definitions.SUBMISSIONIDENTIFIER ).getValue()));
-     else
-      sbmId=key;
-     
-     if( ! options.isStore() )
-      reqEntity.addPart(SubmissionConstants.VERIFY_ONLY, new StringBody("on"));
-     
-     String descr = s.getAnnotation( Definitions.SUBMISSIONDESCRIPTION ).getValue();
-     
-     if( descr != null )
-      reqEntity.addPart(SubmissionConstants.SUBMISSON_DESCR, new StringBody(descr));
-     
-     reqEntity.addPart(SubmissionConstants.MODULE_DESCRIPTION+"1", new StringBody("AGE-TAB file"));
-     reqEntity.addPart(SubmissionConstants.MODULE_STATUS+"1", new StringBody(Status.NEW.name()));
-     
-     reqEntity.addPart(SubmissionConstants.ATTACHMENT_DESC+"2", new StringBody("SAMPLE-TAB file"));
-     reqEntity.addPart(SubmissionConstants.ATTACHMENT_STATUS+"2", new StringBody(Status.NEW.name()));
-     reqEntity.addPart(SubmissionConstants.ATTACHMENT_ID+"2", new StringBody("SAMPLE-TAB"));
-     
-     reqEntity.addPart(SubmissionConstants.MODULE_FILE+"1", new ByteArrayBody(atContent, "text/plain; charset=UTF-8", sbmId+".age.txt"));
-     reqEntity.addPart(SubmissionConstants.ATTACHMENT_FILE+"2", new StringBody(stContent, "text/plain", Charset.forName("UTF-8")));
-    }
-    catch(UnsupportedEncodingException e)
-    {
-     log.println("ERROR: UnsupportedEncodingException: "+e.getMessage());
-     return;
-    }
+     MultipartEntity reqEntity = new MultipartEntity();
 
-    post.setEntity(reqEntity);
- 
-    HttpResponse response;
-    try
-    {
-     response = httpclient.execute(post);
-     
-     if( response.getStatusLine().getStatusCode() != HttpStatus.SC_OK )
+     String sbmId = s.getAnnotation(Definitions.SUBMISSIONIDENTIFIER).getValue();
+
+     try
      {
-      log.println("Server response code is: "+response.getStatusLine().getStatusCode());
+      reqEntity.addPart(Constants.uploadHandlerParameter, new StringBody(SubmissionConstants.SUBMISSON_COMMAND));
+      reqEntity.addPart(SubmissionConstants.SUBMISSON_KEY, new StringBody(key));
+      reqEntity.addPart(SubmissionConstants.SUBMISSON_STATUS, new StringBody(Status.NEW.name()));
+
+      if(sbmId != null)
+       reqEntity.addPart(SubmissionConstants.SUBMISSON_ID,
+         new StringBody(s.getAnnotation(Definitions.SUBMISSIONIDENTIFIER).getValue()));
+      else
+       sbmId = key;
+
+      if(!options.isStore())
+       reqEntity.addPart(SubmissionConstants.VERIFY_ONLY, new StringBody("on"));
+
+      String descr = s.getAnnotation(Definitions.SUBMISSIONDESCRIPTION).getValue();
+
+      if(descr != null)
+       reqEntity.addPart(SubmissionConstants.SUBMISSON_DESCR, new StringBody(descr));
+
+      reqEntity.addPart(SubmissionConstants.MODULE_DESCRIPTION + "1", new StringBody("AGE-TAB file"));
+      
+      Status sts;
+      
+      if( options.isNewSubmissions() )
+       sts = Status.NEW;
+      else if( options.isUpdateSubmissions() )
+       sts = Status.UPDATE;
+      else
+       sts = Status.UPDATEORNEW;
+      
+      reqEntity.addPart(SubmissionConstants.MODULE_STATUS + "1", new StringBody(sts.name()));
+
+      reqEntity.addPart(SubmissionConstants.ATTACHMENT_DESC + "2", new StringBody("SAMPLE-TAB file"));
+      reqEntity.addPart(SubmissionConstants.ATTACHMENT_STATUS + "2", new StringBody(Status.NEW.name()));
+      reqEntity.addPart(SubmissionConstants.ATTACHMENT_ID + "2", new StringBody("SAMPLE-TAB"));
+
+      reqEntity.addPart(SubmissionConstants.MODULE_FILE + "1", new ByteArrayBody(atContent,
+        "text/plain; charset=UTF-8", sbmId + ".age.txt"));
+
+      reqEntity.addPart(SubmissionConstants.ATTACHMENT_FILE + "2", new ByteArrayBody(stContent.getBytes("UTF-8"),
+        "text/plain; charset=UTF-8", sbmId + ".sampletab.txt"));
+   
+     }
+     catch(UnsupportedEncodingException e)
+     {
+      log.println("ERROR: UnsupportedEncodingException: " + e.getMessage());
       return;
      }
-     
-     HttpEntity ent = response.getEntity();
-     
-     String respStr = EntityUtils.toString( ent );
-     
-     int pos = respStr.indexOf("OK-"+key);
-     
-     if( pos == -1 )
+
+     post.setEntity(reqEntity);
+
+     HttpResponse response;
+     try
      {
-      log.println("ERROR: Invalid server response : "+respStr);
-      continue;
+      response = httpclient.execute(post);
+
+      if(response.getStatusLine().getStatusCode() != HttpStatus.SC_OK)
+      {
+       log.println("Server response code is: " + response.getStatusLine().getStatusCode());
+       return;
+      }
+
+      HttpEntity ent = response.getEntity();
+
+      String respStr = EntityUtils.toString(ent);
+
+      int pos = respStr.indexOf("OK-" + key);
+
+      if(pos == -1)
+      {
+       log.println("ERROR: Invalid server response : " + respStr);
+       continue;
+      }
+
+      pos = pos + key.length() + 5;
+      String respStat = respStr.substring(pos, respStr.indexOf(']', pos));
+
+      log.println("Submission status: " + respStat);
+
+      if(options.isSaveResponse())
+      {
+       log.println("Writing response");
+       File rspf = new File(respDir, stfile.getName() + '.' + respStat);
+
+       PrintWriter pw = new PrintWriter(rspf, "UTF-8");
+
+       pw.write(respStr);
+       pw.close();
+      }
+
+      EntityUtils.consume(ent);
      }
-     
-     pos=pos+key.length()+5;
-     String respStat = respStr.substring( pos, respStr.indexOf(']', pos) );
-     
-     log.println("Submission status: "+respStat);
-     
-     if( options.isSaveResponse() )
+     catch(Exception e)
      {
-      log.println("Writing response");
-      File rspf = new File( respDir, stfile.getAbsolutePath()+'.'+respStat );
-      
-      PrintWriter pw = new PrintWriter(rspf, "UTF-8");
-      
-      pw.write(respStr);
-      pw.close();
+      log.println("ERROR: IO error: " + e.getMessage());
+      return;
      }
-     
-     EntityUtils.consume(ent);
-    }
-    catch(Exception e)
-    {
-     log.println("ERROR: IO error: "+e.getMessage());
-     return;
     }
 
     log.println("File '"+stfile.getName()+ "' done");
+    System.out.println("File '"+stfile.getName()+ "' done");
 
    }
   }
