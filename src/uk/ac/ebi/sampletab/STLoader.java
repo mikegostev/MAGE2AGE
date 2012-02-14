@@ -285,7 +285,7 @@ public class STLoader
 
      try
      {
-      reqEntity.addPart(Constants.uploadHandlerParameter, new StringBody(SubmissionConstants.SUBMISSON_COMMAND));
+      reqEntity.addPart(Constants.uploadHandlerParameter, new StringBody(Constants.SUBMISSON_COMMAND));
       reqEntity.addPart(SubmissionConstants.SUBMISSON_KEY, new StringBody(key));
       reqEntity.addPart(SubmissionConstants.SUBMISSON_STATUS, new StringBody(Status.NEW.name()));
 
@@ -362,6 +362,7 @@ public class STLoader
       String respStat = respStr.substring(pos, respStr.indexOf(']', pos));
 
       log.println("Submission status: " + respStat);
+      System.out.println("Submission status: " + respStat);
 
       if(options.isSaveResponse())
       {

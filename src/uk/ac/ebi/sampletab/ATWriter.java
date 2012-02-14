@@ -27,19 +27,23 @@ public class ATWriter
   out.print( TAB );
   out.print( sub.getID() );
   
-  for( Attribute attr : sub.getAnnotations() )
+  
+  if(  sub.getAnnotations() != null )
   {
-   String atName = attr.getName();
-   
-//   if( atName.startsWith(Definitions.SUBMISSION) )
-//    atName = atName.substring(Definitions.SUBMISSION.length()+1);
+   for(Attribute attr : sub.getAnnotations())
+   {
+    String atName = attr.getName();
 
-   out.println();
-   out.print( atName );
-   out.print( TAB );
-   out.print( attr.getID() );
+    // if( atName.startsWith(Definitions.SUBMISSION) )
+    // atName = atName.substring(Definitions.SUBMISSION.length()+1);
+
+    out.println();
+    out.print(atName);
+    out.print(TAB);
+    out.print(attr.getID());
+   }
   }
-
+  
   for( String atCl : sub.getAttachedClasses() )
   {
    List<WellDefinedObject> objs = sub.getAttachedObjects(atCl);

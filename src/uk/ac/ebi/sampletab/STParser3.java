@@ -7,7 +7,6 @@ import java.util.List;
 
 import com.pri.util.SpreadsheetReader;
 import com.pri.util.StringUtils;
-import com.pri.util.TimeLog;
 
 
 public class STParser3
@@ -21,8 +20,6 @@ public class STParser3
  
  public static Submission readST( String text ) throws IOException
  {
-  TimeLog.reportEvent("Data loaded");
-  
   Submission sub = new Submission();
   
   SpreadsheetReader reader = new SpreadsheetReader( text );
@@ -33,7 +30,7 @@ public class STParser3
   List<String> headerLine = null; 
   List<String> prevLine = null; 
   
-  while( reader.readLine(parts) != null )
+  while( reader.readRow(parts) != null )
   {
    int emp=0;
    for( int k=parts.size()-1; k>=0 ; k-- )
